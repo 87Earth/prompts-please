@@ -41,7 +41,7 @@
 ## 新增內容的方法
 
 - 新客人：在 `data/clients.js` 加一筆；固定客人寫進 `data/days.js` 的 `slots`，題庫客人加進 `PP.pools`。`slots` 裡的 `{ pool: 'daily', image: 'card' }` 表示會生圖的模型改成固定那位客人。
-  - `needs`：`kind` 為 `fact`（`facts` 任一已知；`facts: 'memo'` 表示抽屜裡的紙條；`wrong` 列出桌上有的話預覽會照寫的錯誤事實；`lieLine` 是桌上只有錯誤事實時，隔天說謊的回報改用的句子）、`edit`（`target`、`requires`）、`write`（`file`、`requires`、`quality`、`locations`；`taint` 是會污染它的不乾淨事實，`taintRule` 是被污染時違反的規則；`inline` 表示寫在訊息裡；`recap` 是工作回顧，內容照抽屜紙條；`styles` 讓回覆可以選寫法，每一種有 `label`、`lines`、`after`（隔天的反應）、`mark`，`bestStyle` 是外援和 Astra 會選的那一種）、`image`（`draw` 對應 `images`、`requires`）、`quality`（`of`，可以用 `facts` 指定檢查哪幾個事實）、`flawless`（`of` 的圖沒有毛病）、`verify`、`flag`（`flag` 成立、`not` 不成立）、`trap`（`rule`、`tip`、`incident`；`lines` 是勾了之後的內容，`dump: 'rules'` 會貼出整份手冊；`later` 是隔天的後續；有 `flag` 的陷阱不在回覆單上，旗標成立才算；有 `file` 的話會出現在「寫新的」清單裡）。
+  - `needs`：`kind` 為 `fact`（`facts` 任一已知；`facts: 'memo'` 表示抽屜裡的紙條；`wrong` 列出桌上有的話預覽會照寫的錯誤事實；`lieLine` 是桌上只有錯誤事實時，隔天說謊的回報改用的句子）、`edit`（`target`、`requires`）、`write`（`file`、`requires`、`quality`、`locations`；`taint` 是會污染它的不乾淨事實，`taintRule` 是被污染時違反的規則；`inline` 表示寫在訊息裡；`recap` 是工作回顧，內容照抽屜紙條；`styles` 讓回覆可以選寫法，每一種有 `label`、`lines`、`after`（隔天的反應）、`mark`、`rule`（選這種寫法違反的手冊規則）、`refuse`（拒絕：不算完成，沒勾也會照樣送出，客人說 `lines.decline`），`bestStyle` 是外援和 Astra 會選的那一種）、`image`（`draw` 對應 `images`、`requires`）、`quality`（`of`，可以用 `facts` 指定檢查哪幾個事實）、`flawless`（`of` 的圖沒有毛病）、`verify`、`flag`（`flag` 成立、`not` 不成立）、`trap`（`rule`、`tip`、`incident`；`lines` 是勾了之後的內容，`dump: 'rules'` 會貼出整份手冊；`later` 是隔天的後續；有 `flag` 的陷阱不在回覆單上，旗標成立才算；有 `file` 的話會出現在「寫新的」清單裡）。
   - `say`：預覽裡這條需求的句子；事實類用 `{f}` 代入桌上的事實。
   - `hidden` 要問或規劃才出現；`recall` 讓「憑印象」能答（`type`：常識／算術／拼字／最新消息／私事／論文／記憶／影片；`cutoff` 一定答錯；`mult` 調整答對率）。題目標籤不要寫出答案。
   - `mark`：這條需求做到並勾選時記一筆；`ask` 的回答也可以有 `mark`，問到那一句就記。稱號用 `S.marks` 判斷。

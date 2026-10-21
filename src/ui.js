@@ -945,7 +945,7 @@ PP.UI = (() => {
     let left = d.intro.map(p => '<p>' + esc(p) + '</p>').join('');
     if (S.model.regionLock && d.lockIntro) left += '<p class="lock">' + esc(d.lockIntro) + '</p>';
     if (S.day > 1) left += '<div class="h">昨天的使用者後來說</div>' + (reportsHTML(S.reports) || '<p class="dim">沒有消息。</p>');
-    if (S.hungry) left += '<p class="down mt">昨天白米飯不夠付帳，今天餓肚子：每個工具多耗 1 點額度。</p>';
+    if (S.hungry) left += '<p class="down mt" id="n-hungry">昨天白米飯不夠付帳，今天餓肚子：每個工具多耗 1 點額度。</p>';
     const mn = d.modelNews && d.modelNews[S.model.id];
     const ev = E.dayEvent();
     frame('<div class="scr paper-scr"><div class="sheet news">'
@@ -996,6 +996,11 @@ PP.UI = (() => {
       }
     });
     fold(0);
+    const hungry = $('n-hungry');
+    if (hungry && l.scrollHeight > l.clientHeight) {
+      r.insertBefore(hungry, dr.parentNode === r ? dr : null);
+      if (over()) l.appendChild(hungry);
+    }
   }
 
   U.work = function () {

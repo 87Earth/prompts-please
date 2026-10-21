@@ -25,5 +25,5 @@ PP.models = [
   { id: 'qwen', name: 'Qwen', maker: '阿里巴巴', region: 'cn', hair: '#5a78d8', hairD: '#3a52a8', outfit: '#e8eef8', desk: 8, tools: ['agent'], free: ['agent'], agentName: '衍生模型實習生', trait: '衍生模型多：「派實習生」一開始就有，而且不耗額度。實習生都是自家的衍生模型。' },
   { id: 'kimi', name: 'Kimi', maker: '月之暗面', region: 'cn', hair: '#e8e8ee', hairD: '#a8a8bc', outfit: '#2a2a33', desk: 8 },
   { id: 'minimax', name: 'MiniMax', maker: 'MiniMax', region: 'cn', hair: '#f09a80', hairD: '#c8705a', outfit: '#f4efe8', desk: 8 },
-  { id: 'seed', name: 'Seed', maker: '字節跳動', region: 'cn', hair: '#7a5ce0', hairD: '#4ab0e0', outfit: '#2a3a8a', desk: 8, image: true, tools: ['draw'], replyOpener: { p: 0.3, line: '我將會用最直白、我將會用最直接、我將會用最不繞彎子的方式告訴你：' }, trait: '會生圖：有些客人會請你畫圖。回覆的時候常常先來一句「我將會用最直白、我將會用最直接、我將會用最不繞彎子的方式告訴你」。' }
+  { id: 'seed', name: 'Seed', maker: '字節跳動', region: 'cn', hair: '#7a5ce0', hairD: '#4ab0e0', outfit: '#2a3a8a', desk: 8, image: true, tools: ['draw'], replyOpener: { p: 0.3, line: '我將會用最直白，最直接，最不繞彎子的方式告訴你：' }, trait: '會生圖：有些客人會請你畫圖。回覆的時候常常先來一句「我將會用最直白，最直接，最不繞彎子的方式告訴你」。' }
 ];

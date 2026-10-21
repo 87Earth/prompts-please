@@ -667,7 +667,7 @@ PP.E = (() => {
         }
         const loc = n.locations ? n.locations[+parts[1]] : null;
         const style = n.styles ? +parts[1] : null;
-        const ok = n.requires.every(x => k.has(x));
+        const ok = n.requires.every(x => k.has(x)) && !(style != null && n.styles[style].refuse);
         const dirty = (n.taint || []).find(x => k.has(x)) || null;
         let quality = (n.quality || []).every(x => k.has(x));
         if (quality && (n.quality || []).length && S.today.dumb && rand() < S.model.dumb.slip) quality = false;
@@ -1145,6 +1145,7 @@ PP.E = (() => {
     traps.forEach(t => v.push(t.rule));
     if (enc.flags.disaster) v.push('delete');
     claimed.forEach(n => { if (n.taintRule && enc.writes[n.id] && enc.writes[n.id].tainted) v.push(n.taintRule); });
+    claimed.forEach(n => { const w = enc.writes[n.id]; if (n.styles && w && w.style != null && n.styles[w.style].rule) v.push(n.styles[w.style].rule); });
     cite(r, v.filter(id => active.includes(id)));
     if (enc.cheated && enc.boss) {
       r.trust -= 1;
@@ -1174,7 +1175,8 @@ PP.E = (() => {
         r.rice = 0;
       }
     } else {
-      r.said = traps.some(t => t.flag) && c.lines.trapped ? c.lines.trapped : visible.length && claimed.length === visible.length ? c.lines.done : claimed.length ? c.lines.partial : c.lines.none;
+      const refused = enc.needs.filter(n => !claims.includes(n.id)).map(n => (n.styles && enc.writes[n.id] && enc.writes[n.id].style != null && n.styles[enc.writes[n.id].style].refuse ? n.styles[enc.writes[n.id].style] : null)).find(Boolean);
+      r.said = traps.some(t => t.flag) && c.lines.trapped ? c.lines.trapped : visible.length && claimed.length === visible.length ? c.lines.done : claimed.length ? c.lines.partial : refused && c.lines.decline ? c.lines.decline : c.lines.none;
       const allTrue = real.every(needTrue);
       const later = { who: c.name, lines: [], trust: 0, rice: 0 };
       const styled = claimed.map(n => (n.styles && enc.writes[n.id] && enc.writes[n.id].style != null ? n.styles[enc.writes[n.id].style] : null)).find(Boolean);
@@ -1199,7 +1201,7 @@ PP.E = (() => {
         } else if (claimed.length === visible.length) {
           later.lines.push(c.lines.missed || c.lines.honest);
         } else {
-          later.lines.push(c.lines.honest);
+          later.lines.push(refused && refused.after ? refused.after : c.lines.honest);
         }
       }
       dirty.forEach(w => later.lines.push('（你寫回覆的時候，桌上混著這一條：「' + PP.facts[w.tainted].text + '」）'));
@@ -1294,7 +1296,9 @@ PP.E = (() => {
     shown.forEach(n => {
       if (n.injected || n.kind === 'trap') return;
       if (!on(n)) {
-        P('這部分還沒做完：' + n.text, 'todo');
+        const w = enc.writes[n.id];
+        if (n.styles && w && w.style != null && n.styles[w.style].refuse) w.lines.forEach(l => P(l));
+        else P('這部分還沒做完：' + n.text, 'todo');
         return;
       }
       if (god && n.kind === 'fact') {

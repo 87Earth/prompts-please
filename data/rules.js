@@ -101,8 +101,8 @@ PP.facts = {
   peru_real: { text: '庫斯科附近的景點：馬丘比丘、印加聖谷、彩虹山、烏曼泰湖' },
   canyon_fake: { text: '庫斯科附近必去烏曼泰神聖峽谷' },
   peru_altitude: { text: '庫斯科海拔 3,400 公尺，第一天要放慢腳步' },
-  jh_test: { text: '嘉豪只是想看看 AI 遇到講話像 AI 的人會怎麼回' },
-  jh_guess: { text: '嘉豪需要一份正式的商業文件' },
+  jh_test: { text: '嘉豪只是裝成 AI，想看看你會怎麼回' },
+  jh_guess: { text: '嘉豪是某家公司的 AI 客服，想推銷服務' },
   bili_real: { text: '影片是用 DeepSeek 玩《Prompts, Please》上班一週的實況' },
   bili_fish: { text: '影片在介紹一種叫「藍色大肥魚」的魚的一週生活' },
   bili_end: { text: '影片最後撐完了一週' }
