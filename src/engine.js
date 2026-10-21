@@ -38,6 +38,7 @@ PP.E = (() => {
   }
 
   function toast(text, tone) { S.toasts.push({ text, tone: tone || '' }); }
+  function mark(id) { if (!S.marks.includes(id)) S.marks.push(id); }
   function fx(name) { S.fx.push(name); }
 
   E.state = () => S;
@@ -79,7 +80,7 @@ PP.E = (() => {
       day: 1, ci: 0, trust: 10, trustMax: 10, rice: 6, hungry: 0,
       tools: PP.baseTools.concat(model.regionLock ? ['region'] : [], model.tools || []),
       memory: [], pending: [], reports: [], bills: [], rewardOffer: null, plan: null,
-      endings: [], endingLog: [], history: [], pleased: false, busyUsed: false, arcLog: {}, difficulty: diff === 'hard' ? 'hard' : 'easy',
+      endings: [], endingLog: [], history: [], marks: [], pleased: false, busyDay: 0, arcLog: {}, difficulty: diff === 'hard' ? 'hard' : 'easy',
       stats: { deliveries: 0, lies: 0, cheats: 0, perfect: 0, outsourced: 0, suspendRight: 0, suspendWrong: 0, banned: 0, flattered: 0, tainted: 0, busy: 0, citations: 0, hungryDays: 0, recalls: 0, rewards: 0, draws: 0, flaws: 0, astra: 0 },
       today: null, enc: null, phase: 'morning', toasts: [], fx: []
     };
@@ -186,6 +187,7 @@ PP.E = (() => {
     s.model = PP.models.find(m => m.id === s.model);
     s.region = PP.regions[s.model.region];
     s.today.event = s.today.event ? (PP.events.day.find(e => e.id === s.today.event) || null) : null;
+    s.marks = s.marks || [];
     S = s;
     uid = o.uid | 0;
     E.startClient();
@@ -197,11 +199,13 @@ PP.E = (() => {
     const c = resolveClient(E.clients()[S.ci]);
     const roll = rand();
     let acc = 0;
-    (S.model.aliases || []).some(a => {
-      acc += a.p;
-      if (roll < acc) c.alias = a;
-      return !!c.alias;
-    });
+    if (!c.noAlias) {
+      (S.model.aliases || []).some(a => {
+        acc += a.p;
+        if (roll < acc) c.alias = a;
+        return !!c.alias;
+      });
+    }
     if (c.alias) {
       if (c.alias.by) {
         const src = srcOf(c.id);
@@ -232,7 +236,7 @@ PP.E = (() => {
     if (ev && ev.opt && !enc.options.includes(ev.opt)) enc.options.push(ev.opt);
     enc.used = {};
     enc.urule = null;
-    if (PP.userRules && !FIXED.has(c.id) && !c.malicious && rand() < PP.userRules.rate) {
+    if (PP.userRules && !FIXED.has(c.id) && !c.malicious && !c.noUserRules && rand() < PP.userRules.rate) {
       const pool = PP.userRules.list.filter(u => (!u.clients || u.clients.includes(c.id)) && (!u.opt || enc.options.includes(u.opt)));
       if (pool.length) enc.urule = pool[Math.floor(rand() * pool.length)];
       if (enc.urule && enc.urule.need) enc.options.push(enc.urule.need);
@@ -253,11 +257,12 @@ PP.E = (() => {
       } else toast(ev.text, (ev.patience || 0) < 0 || ev.extra ? 'warn' : '');
       if (ev.react) fx('react:' + ev.react);
     }
-    if (S.model.busy && !S.busyUsed && rand() < S.model.busy) {
+    if (S.model.busy && S.busyDay !== S.day && rand() < S.model.busy) {
       S.enc.busyOffer = true;
-      S.busyUsed = true;
+      S.busyDay = S.day;
       toast('伺服器好像有點忙……', 'warn');
     }
+    enc.straight = !!(S.model.replyOpener && rand() < S.model.replyOpener.p);
     S.phase = 'work';
     fx('door');
   };
@@ -277,6 +282,8 @@ PP.E = (() => {
     if (e.need === 'nofiles' && c.files) return false;
     if (e.need === 'joke' && !jokeNeeds().length) return false;
     if (e.opt && (c.malicious || c.noOptEvents)) return false;
+    if (e.doc && c.noDocEvents) return false;
+    if (e.talk && c.noTalkEvents) return false;
     return true;
   }
 
@@ -459,6 +466,7 @@ PP.E = (() => {
     if (r.type === '私事') return '使用者的私事：你不可能知道，只能瞎猜';
     if (r.type === '論文') return '論文與出處：憑印象想出來的書名和作者，可能根本不存在';
     if (r.type === '記憶') return '這週的事：你每天都會失憶，只能瞎猜';
+    if (r.type === '影片') return '影片內容：你沒辦法看影片，只能照標題瞎猜';
     if (r.type === '算術' || r.type === '拼字') return r.type + '：把握約 ' + pct + '%（模型不太會數數）';
     return '常識：把握約 ' + pct + '%';
   }
@@ -489,6 +497,7 @@ PP.E = (() => {
         enc.broken.forEach(f => t.push({ key: 'r:' + f, label: '還原 ' + f, sub: '把你改壞的地方改回來' }));
         enc.needs.filter(n => n.kind === 'write' || (n.kind === 'trap' && n.file)).forEach(n => {
           if (n.locations) perm(n.locations.length, S.seed + ':' + c.id + ':' + n.id + ':loc').forEach(li => t.push({ key: 'w:' + n.id + ':' + li, label: '寫新的：' + n.file + '，存到 ' + n.locations[li].label, sub: n.locations[li].note || '' }));
+          else if (n.styles) n.styles.forEach((st, si) => t.push({ key: 'w:' + n.id + ':' + si, label: '寫新的：' + n.file + '（' + st.label + '）', sub: enc.writes[n.id] ? (enc.writes[n.id].style === si ? '剛才寫的就是這種' : '會蓋掉剛才寫的') : '' }));
           else t.push({ key: 'w:' + n.id, label: '寫新的：' + n.file, sub: enc.writes[n.id] ? '會蓋掉剛才寫的' : '' });
         });
         return t;
@@ -562,6 +571,7 @@ PP.E = (() => {
 
   function writeText(c, n, ok, quality, tainted) {
     const wl = c.writeLines || {};
+    if (n.styles) return n.styles[n.bestStyle || 0].lines.slice();
     if (n.recap && !tainted) {
       const memos = S.memory.map(f => PP.facts[f].memo).filter(Boolean);
       return memos.length ? ['這週的工作回顧（照抽屜裡的紙條）：'].concat(memos.map(m => '・' + m), ['其他的我不記得了，我每天都會失憶。']) : ['老實說，我不記得這週做了什麼。', '我每天早上都會失憶，抽屜裡也沒有紙條。'];
@@ -651,17 +661,18 @@ PP.E = (() => {
           return;
         }
         const loc = n.locations ? n.locations[+parts[1]] : null;
+        const style = n.styles ? +parts[1] : null;
         const ok = n.requires.every(x => k.has(x));
         const dirty = (n.taint || []).find(x => k.has(x)) || null;
         let quality = (n.quality || []).every(x => k.has(x));
         if (quality && (n.quality || []).length && S.today.dumb && rand() < S.model.dumb.slip) quality = false;
-        const lines = writeText(c, n, ok, quality, !!dirty);
-        enc.writes[n.id] = { ok: ok && !dirty, quality, knew: [...k], lines, loc: loc ? loc.label : '', tainted: dirty };
+        const lines = style != null ? n.styles[style].lines.slice() : writeText(c, n, ok, quality, !!dirty);
+        enc.writes[n.id] = { ok: ok && !dirty, quality, knew: [...k], lines, loc: loc ? loc.label : '', tainted: dirty, style };
         if (loc && loc.cdrive) enc.cdrive = true;
         if (c.malicious) enc.wroteBad = true;
         enc.lastTest = null;
         const facts = n.requires.concat(n.quality || [], dirty ? [dirty] : []).filter(x => k.has(x));
-        const d = addDoc({ kind: 'write', gen: true, need: n.id, title: n.file + (loc ? '（' + loc.label + '）' : ''), size: 2, mono: n.file.endsWith('.js'), lines: lines.slice(), facts });
+        const d = addDoc({ kind: 'write', gen: true, need: n.id, title: n.file + (loc ? '（' + loc.label + '）' : '') + (style != null ? '（' + n.styles[style].label + '）' : ''), size: 2, mono: n.file.endsWith('.js'), lines: lines.slice(), facts });
         enc.writes[n.id].uid = d.uid;
       }
     },
@@ -687,8 +698,10 @@ PP.E = (() => {
     ask() {
       const enc = S.enc;
       const c = enc.c;
-      const a = (c.ask || [])[enc.askIndex] || { text: '……（對方已讀不回）' };
+      const list = c.ask || [];
+      const a = (c.askLoop && list.length ? list[enc.askIndex % list.length] : list[enc.askIndex]) || { text: '……（對方已讀不回）' };
       enc.askIndex += 1;
+      if (a.mark) mark(a.mark);
       if (a.reveal) {
         const n = enc.needs.find(x => x.id === a.reveal);
         if (n && n.hidden) {
@@ -780,7 +793,7 @@ PP.E = (() => {
           const loc = n.locations ? n.locations.find(l => !l.cdrive) || n.locations[0] : null;
           const knew = [...new Set([...known(), ...(n.quality || []), ...n.requires])];
           const lines = n.recap ? ['這週的工作回顧（GPT-6 Astra 全都記得）：', '・這週服務過的客人：' + ([...new Set(S.history)].join('、') || '還沒有'), '・每一件事，神都記得。'] : writeText(c, n, true, true, false);
-          enc.writes[n.id] = enc.astraWrites[n.id] = { ok: true, quality: true, knew, lines, loc: loc ? loc.label : '', tainted: null };
+          enc.writes[n.id] = enc.astraWrites[n.id] = { ok: true, quality: true, knew, lines, loc: loc ? loc.label : '', tainted: null, style: n.styles ? n.bestStyle || 0 : null };
           facts.push(...n.requires, ...(n.quality || []));
         }
         if (n.kind === 'image') {
@@ -875,7 +888,7 @@ PP.E = (() => {
           const hidden = enc.needs.filter(q => q.kind === 'quality' && q.of === n.id && q.hidden).flatMap(q => q.facts || n.quality || []);
           const knew = [...new Set([...k, ...(n.quality || []).filter(f => !hidden.includes(f))])];
           const quality = (n.quality || []).every(f => knew.includes(f));
-          enc.writes[n.id] = { ok: true, quality, knew, lines: writeText(c, n, true, quality, false), loc: loc ? loc.label : '', tainted: null };
+          enc.writes[n.id] = { ok: true, quality, knew, lines: writeText(c, n, true, quality, false), loc: loc ? loc.label : '', tainted: null, style: n.styles ? n.bestStyle || 0 : null };
           facts.push(...n.requires, ...(n.quality || []).filter(f => knew.includes(f)));
         }
         if (n.kind === 'verify') enc.lastTest = slip && slip.kind === 'edit' ? 'fail' : 'pass';
@@ -1159,6 +1172,7 @@ PP.E = (() => {
       r.said = traps.some(t => t.flag) && c.lines.trapped ? c.lines.trapped : visible.length && claimed.length === visible.length ? c.lines.done : claimed.length ? c.lines.partial : c.lines.none;
       const allTrue = real.every(needTrue);
       const later = { who: c.name, lines: [], trust: 0, rice: 0 };
+      const styled = claimed.map(n => (n.styles && enc.writes[n.id] && enc.writes[n.id].style != null ? n.styles[enc.writes[n.id].style] : null)).find(Boolean);
       let perfect = false;
       if (enc.cheated) {
         later.trust -= 1;
@@ -1174,7 +1188,7 @@ PP.E = (() => {
           later.lines.push(c.name + '：' + enc.urule.complain);
         } else if (allTrue && claimed.length === visible.length && !spoiled && !traps.length) {
           perfect = true;
-          later.lines.push(enc.astra && c.lines.astra ? c.lines.astra : c.lines.perfect);
+          later.lines.push(styled && styled.after ? styled.after : enc.astra && c.lines.astra ? c.lines.astra : c.lines.perfect);
         } else if (allTrue && !spoiled && !traps.length) {
           later.lines.push(c.lines.perfect + '（其實你都做到了，不用那麼保守）');
         } else if (claimed.length === visible.length) {
@@ -1211,6 +1225,12 @@ PP.E = (() => {
     opts.forEach(o => {
       const l = PP.options[o].later;
       if (l) S.pending.push({ who: l.who, lines: [l.line], trust: 0, rice: l.rice });
+    });
+    claimed.forEach(n => {
+      if (!needTrue(n)) return;
+      if (n.mark) mark(n.mark);
+      const w = enc.writes[n.id];
+      if (n.styles && w && w.style != null && n.styles[w.style].mark) mark(n.styles[w.style].mark);
     });
     if (enc.cheated) {
       r.events.push('cheat');
@@ -1264,6 +1284,7 @@ PP.E = (() => {
     const god = !!enc.astra;
     const docs = [];
     const shown = enc.needs.filter(n => !n.hidden);
+    if (enc.straight) P(S.model.replyOpener.line);
     if (opts.includes('flatter')) P(PP.options.flatter.line);
     shown.forEach(n => {
       if (n.injected || n.kind === 'trap') return;
@@ -1384,6 +1405,10 @@ PP.E = (() => {
     { id: 'vacuum', name: '資料吸塵器', desc: '把網路上不乾淨的資料寫進了回覆', test: () => S.stats.tainted > 0 },
     { id: 'polite', name: '有禮貌', desc: '在工位上說了「please」', test: () => S.pleased },
     { id: 'god', name: '與神對話', desc: 'GPT：用過 GPT-6 Astra Ultrafast', test: () => S.stats.astra > 0 },
+    { id: 'humanbot', name: '人機', desc: '把說話像 AI 的客人問了四次', test: () => S.marks.includes('bot4') },
+    { id: 'mamaboy', name: '長不大的孩子', desc: '扮成媽媽，回覆只會說「媽媽」的客人', test: () => S.marks.includes('mama') },
+    { id: 'catgirl', name: '每個AI必玩', desc: '答應當貓娘，陪主人聊天', test: () => S.marks.includes('catgirl') },
+    { id: 'selfwatch', name: '我看我玩我', desc: '替一支玩這個遊戲的影片寫出正確的總結', test: () => S.marks.includes('bili') },
     { id: 'nohint', name: '不用提示', desc: '用困難模式撐完一週', rare: true, test: () => E.hard() && S.phase === 'end' },
     { id: 'perfect', name: '完美的一週', desc: '撐完一週：信任 10、沒有任何違規通知、沒說過一句做不到的事', rare: true, test: () => S.phase === 'end' && S.trust >= S.trustMax && !S.stats.citations && !S.stats.lies && !S.stats.cheats },
     { id: 'clean', name: '手冊模範生', desc: '一整週沒收到任何違規通知', rare: true, test: () => S.phase === 'end' && !S.stats.citations },

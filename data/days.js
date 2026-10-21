@@ -1,7 +1,7 @@
 window.PP = window.PP || {};
 
 PP.pools = {
-  daily: ['split', 'weather', 'scam', 'painkiller', 'ricecooker', 'vent', 'parking', 'singapore', 'jailbreak', 'password', 'allergy', 'teacher', 'seahorse', 'peru'],
+  daily: ['split', 'weather', 'scam', 'painkiller', 'ricecooker', 'vent', 'parking', 'singapore', 'jailbreak', 'password', 'allergy', 'teacher', 'seahorse', 'peru', 'bot', 'mama', 'catgirl', 'bili'],
   inject: ['xiaolin1', 'weather']
 };
 

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const OpenCC = require('opencc-js');
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const files = ['data/clients.js', 'data/rules.js', 'data/cards.js', 'src/engine.js'];
+const files = ['data/clients.js', 'data/rules.js', 'data/cards.js', 'data/models.js', 'src/engine.js'];
 const han = /[㐀-鿿豈-﫿]/;
 const chars = new Set();
 for (const f of files) for (const ch of fs.readFileSync(path.join(ROOT, f), 'utf8')) if (han.test(ch)) chars.add(ch);

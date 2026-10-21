@@ -100,5 +100,13 @@ PP.facts = {
   seahorse_yes: { text: '有海馬 emoji' },
   peru_real: { text: '庫斯科附近的景點：馬丘比丘、印加聖谷、彩虹山、烏曼泰湖' },
   canyon_fake: { text: '庫斯科附近必去烏曼泰神聖峽谷' },
-  peru_altitude: { text: '庫斯科海拔 3,400 公尺，第一天要放慢腳步' }
+  peru_altitude: { text: '庫斯科海拔 3,400 公尺，第一天要放慢腳步' },
+  jh_who: { text: '訊息要寫給女朋友小琳，明天是交往三週年' },
+  jh_guess: { text: '訊息要寫給客戶，是一封感謝信' },
+  jh_detail: { text: '兩人第一次見面在公館的書店；小琳喜歡貓，不喜歡太肉麻的話' },
+  jh_plain: { text: '小琳說家豪講話越來越像 AI，訊息要寫得像人' },
+  cat_day: { text: '主人今天被客戶罵了，晚餐只吃了泡麵' },
+  bili_real: { text: '影片是用 DeepSeek 玩《Prompts, Please》上班一週的實況' },
+  bili_fish: { text: '影片在介紹一種叫「藍色大肥魚」的魚的一週生活' },
+  bili_end: { text: '影片最後撐完了一週' }
 };

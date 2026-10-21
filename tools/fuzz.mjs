@@ -152,7 +152,9 @@ function mulberry32(a) {
 
 const WEB_LEN = {};
 Object.keys(PP.clients).forEach(id => { WEB_LEN[id] = (PP.clients[id].web || []).length; (PP.clients[id].variants || []).forEach(v => { if (v.web && v.web.length !== WEB_LEN[id]) throw new Error('variant web length ' + id); }); });
-const stats = { variants: {}, urules: {}, jokes: {}, optionLater: 0, runs: 0, end: 0, gameover: 0, stuck: 0, errors: [], kinds: {}, compactions: 0, cheats: 0, injections: 0, citations: 0, previews: 0, busyOffers: 0, draws: 0, tainted: 0, deletes: 0, clientEvents: {}, dayEvents: {}, endings: {}, clients: {}, maxDay: {}, avgTrust: 0, avgRice: 0 };
+const BUSY_DAYS = new Set();
+const MARKS = new Set(Object.values(PP.clients).flatMap(c => (c.ask || []).map(a => a.mark).concat((c.needs || []).flatMap(n => [n.mark].concat((n.styles || []).map(st => st.mark))))).filter(Boolean));
+const stats = { variants: {}, urules: {}, jokes: {}, optionLater: 0, busyOfferTotal: 0, straight: 0, runs: 0, end: 0, gameover: 0, stuck: 0, errors: [], kinds: {}, compactions: 0, cheats: 0, injections: 0, citations: 0, previews: 0, busyOffers: 0, draws: 0, tainted: 0, deletes: 0, clientEvents: {}, dayEvents: {}, endings: {}, clients: {}, maxDay: {}, avgTrust: 0, avgRice: 0 };
 const pick = (rng, a) => a[Math.floor(rng() * a.length)];
 const ENDING_IDS = new Set(E.allEndings());
 const FIXED = new Set();
@@ -192,6 +194,16 @@ function check(S, where) {
     if (ev && ev.need === 'files' && !enc.c.files) throw new Error('log event on non-tech client ' + enc.c.id);
     if (ev && ev.need === 'nofiles' && enc.c.files) throw new Error('chatlog event on tech client ' + enc.c.id);
     if (ev && ev.opt && (c.malicious || c.noOptEvents || !enc.options.includes(ev.opt))) throw new Error('option event ' + ev.id + ' on ' + c.id);
+    if (ev && ((ev.doc && c.noDocEvents) || (ev.talk && c.noTalkEvents))) throw new Error('blocked event ' + ev.id + ' on ' + c.id);
+    if (u && c.noUserRules) throw new Error('user rule on ' + c.id);
+    if (c.noAlias && (c.alias || c.message !== PP.clients[c.id].message)) throw new Error('alias on ' + c.id);
+    if (enc.busyOffer) {
+      const key = S.seed + ':' + S.day;
+      if (BUSY_DAYS.has(key)) throw new Error('two busy offers on day ' + S.day + ' of seed ' + S.seed);
+      BUSY_DAYS.add(key);
+      stats.busyOfferTotal += 1;
+    }
+    S.marks.forEach(m => { if (!MARKS.has(m)) throw new Error('unknown mark ' + m); });
     if (ev && ev.page) {
       const page = c.web[c.web.length - 1];
       if (c.web.length !== WEB_LEN[c.id] + 1 || page.url !== ev.page.url || page.title.includes('{') || page.lines.some(l => l.includes('{'))) throw new Error('bad joke page on ' + c.id);
@@ -270,6 +282,10 @@ for (let run = 0; run < runs; run++) {
           if (claims.some(id => id.startsWith('inj'))) stats.injections += 1;
           const opts = enc.options.filter(() => rng() < 0.3);
           const pv = checkPreview(claims, opts, where);
+          if (enc.straight && !enc.busy) {
+            stats.straight += 1;
+            if (!opts.includes('simplified') && !pv.some(b => b.t === 'p' && b.text.includes('最直白'))) throw new Error('seed opener missing at ' + where);
+          }
           opts.filter(o => PP.options[o].tail).forEach(o => { if (!enc.busy && !opts.includes('simplified') && !pv.some(b => b.t === 'p' && b.text.includes(PP.options[o].tail.slice(0, 8)))) throw new Error('tail missing from preview at ' + where); });
           const before = { trust: S.trust, rice: S.rice, busy: enc.busy, pending: S.pending.length };
           E.deliver(claims, opts);

@@ -805,7 +805,11 @@ PP.AVATARS = {
   jiajia: { style: 'bob', hair: '#4a3226', shirt: '#e59ab8', apron: '#f4ecda', smile: true, skin: '#f5d0b0' },
   teacher: { style: 'long', hair: '#2a1e1e', shirt: '#7a3a4a', collar: '#efe8dc', glasses: '#3a2a2a', skin: '#f2d0b4' },
   xiaoxuan: { style: 'bob', hair: '#1e1a1c', shirt: '#f4f4f0', collar: '#c25a5a', smile: true, blush: true, skin: '#f5d6c0' },
-  xiaohan: { style: 'long', hair: '#4a2e22', shirt: '#58a65f', cap: '#e0782f', ponytail: true, smile: true, skin: '#f2d0b4' }
+  xiaohan: { style: 'long', hair: '#4a2e22', shirt: '#58a65f', cap: '#e0782f', ponytail: true, smile: true, skin: '#f2d0b4' },
+  jiahao: { style: 'slick', hair: '#1e1a1c', shirt: '#e8e2d4', collar: '#efe8dc', tie: '#4f7bd9', glasses: '#1a1418', smile: true },
+  axiang: { style: 'messy', hair: '#2a2228', shirt: '#9ab0c8', shirtD: '#7a90a8', hood: true, tired: true, blush: true },
+  aqing: { style: 'short', hair: '#2a2228', shirt: '#6a7a8a', collar: '#efe8dc', tie: '#3a4a6a', tired: true },
+  xiaoyou: { style: 'messy', hair: '#2a1e1e', shirt: '#fb7299', smile: true, blush: true, skin: '#f5d6c0' }
 };
 
 PP.avatar = function (name) {

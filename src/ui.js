@@ -934,7 +934,7 @@ PP.UI = (() => {
       + '<div class="s-note">' + reg.name + '模型：' + esc(reg.note) + '</div></div>'
       + '<div class="s-grid">' + PP.models.map(x => '<div class="s-pick' + (x.id === m.id ? ' on' : '') + '" data-act="pick-model" data-model="' + x.id + '"><img src="' + portrait(x.id) + '"><div class="nm">' + esc(x.name) + '</div></div>').join('') + '</div>'
       + '<div class="s-diff"><span>難度</span>' + ['easy', 'hard'].map(k => '<button class="tg2' + (selDiff === k ? ' on' : '') + '" data-act="pick-diff" data-diff="' + k + '">' + DIFF[k] + '</button>').join('') + '<span class="dim">' + DIFF_NOTE[selDiff] + '</span></div>'
-      + '<div class="s-hint">九個模型都能玩。Claude、GPT、DeepSeek、Qwen 有專屬梗；GPT、Gemini、Grok、Seed 會接到畫圖的委託。</div>'
+      + '<div class="s-hint">九個模型都能玩。Claude、GPT、DeepSeek、Qwen、Grok、Seed 有專屬梗；GPT、Gemini、Grok、Seed 會接到畫圖的委託。</div>'
       + '<button class="big-btn" data-act="start-run">就決定是你</button></div>');
   };
 

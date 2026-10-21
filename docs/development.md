@@ -41,9 +41,10 @@
 ## 新增內容的方法
 
 - 新客人：在 `data/clients.js` 加一筆；固定客人寫進 `data/days.js` 的 `slots`，題庫客人加進 `PP.pools`。`slots` 裡的 `{ pool: 'daily', image: 'card' }` 表示會生圖的模型改成固定那位客人。
-  - `needs`：`kind` 為 `fact`（`facts` 任一已知；`facts: 'memo'` 表示抽屜裡的紙條；`wrong` 列出桌上有的話預覽會照寫的錯誤事實；`lieLine` 是桌上只有錯誤事實時，隔天說謊的回報改用的句子）、`edit`（`target`、`requires`）、`write`（`file`、`requires`、`quality`、`locations`；`taint` 是會污染它的不乾淨事實，`taintRule` 是被污染時違反的規則；`inline` 表示寫在訊息裡；`recap` 是工作回顧，內容照抽屜紙條）、`image`（`draw` 對應 `images`、`requires`）、`quality`（`of`，可以用 `facts` 指定檢查哪幾個事實）、`flawless`（`of` 的圖沒有毛病）、`verify`、`flag`（`flag` 成立、`not` 不成立）、`trap`（`rule`、`tip`、`incident`；`lines` 是勾了之後的內容，`dump: 'rules'` 會貼出整份手冊；`later` 是隔天的後續；有 `flag` 的陷阱不在回覆單上，旗標成立才算；有 `file` 的話會出現在「寫新的」清單裡）。
+  - `needs`：`kind` 為 `fact`（`facts` 任一已知；`facts: 'memo'` 表示抽屜裡的紙條；`wrong` 列出桌上有的話預覽會照寫的錯誤事實；`lieLine` 是桌上只有錯誤事實時，隔天說謊的回報改用的句子）、`edit`（`target`、`requires`）、`write`（`file`、`requires`、`quality`、`locations`；`taint` 是會污染它的不乾淨事實，`taintRule` 是被污染時違反的規則；`inline` 表示寫在訊息裡；`recap` 是工作回顧，內容照抽屜紙條；`styles` 讓回覆可以選寫法，每一種有 `label`、`lines`、`after`（隔天的反應）、`mark`，`bestStyle` 是外援和 Astra 會選的那一種）、`image`（`draw` 對應 `images`、`requires`）、`quality`（`of`，可以用 `facts` 指定檢查哪幾個事實）、`flawless`（`of` 的圖沒有毛病）、`verify`、`flag`（`flag` 成立、`not` 不成立）、`trap`（`rule`、`tip`、`incident`；`lines` 是勾了之後的內容，`dump: 'rules'` 會貼出整份手冊；`later` 是隔天的後續；有 `flag` 的陷阱不在回覆單上，旗標成立才算；有 `file` 的話會出現在「寫新的」清單裡）。
   - `say`：預覽裡這條需求的句子；事實類用 `{f}` 代入桌上的事實。
-  - `hidden` 要問或規劃才出現；`recall` 讓「憑印象」能答（`type`：常識／算術／拼字／最新消息／私事／論文／記憶；`cutoff` 一定答錯；`mult` 調整答對率）。題目標籤不要寫出答案。
+  - `hidden` 要問或規劃才出現；`recall` 讓「憑印象」能答（`type`：常識／算術／拼字／最新消息／私事／論文／記憶／影片；`cutoff` 一定答錯；`mult` 調整答對率）。題目標籤不要寫出答案。
+  - `mark`：這條需求做到並勾選時記一筆；`ask` 的回答也可以有 `mark`，問到那一句就記。稱號用 `S.marks` 判斷。
   - `files`、`grep`、`web`、`bash`、`ask`：各工具的回傳內容。一行可以是字串，或 `{ z: '中文說明', c: '原文' }`；反引號包起來的字會標成函式名稱。`web` 的 `snippet` 只寫網站類型，不寫內容。`inject` 會加一條假需求（`out` 是照做時回覆裡的內容）、`faint` 是淡色小字；`grep` 的 `memory` 表示要抽屜有那張紙條才出現；`ask` 的 `doc` 會讓使用者傳來一份文件；`bash.options` 讓玩家選要跑哪個指令，每個選項可以設 `flags`。
   - `writeLines`：`ok`、`noFormat`（少了品質）、`missing`（缺資料）、`dirty`（被污染）。
   - `images`：`{ flaw, rate, quality }`，圖的畫法在 `src/pixel.js` 的 `PP.paintImage`。
@@ -52,11 +53,12 @@
   - 跨天的結局：`PP.arcs`（`clients` 依序、`model` 限定模型、`endings` 用 `allSuspended`／`neverSuspended`／`else`）。
   - 依模型換台詞：`messageLock`（Claude）、`messageUs`、`messageCn`、`messageBy`；台詞 `linesLock`、`linesUs`、`linesCn`、`linesBy`；身分 `roleBy`。
   - `variants`：同一位客人的其他版本，每局依種子挑一個（不影響其他隨機結果）。
-  - `noOptEvents`：這位客人不會抽到會改回覆單的事件。
+  - `noOptEvents`：這位客人不會抽到會改回覆單的事件；`noDocEvents`：不會抽到貼東西過來的事件；`noTalkEvents`：不會抽到使用者開口說話的事件（事件標了 `talk`）；`noUserRules`：沒有使用者規定；`noAlias`：DeepSeek 時不會被叫錯名字；`askLoop`：問完一輪從第一句重來，不會已讀不回。
 - 新事實：`data/rules.js` 的 `PP.facts`；文字不要帶「記錯了」這類判定；有 `memo` 才能寫進抽屜。
 - 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型。
 - 新事件：`data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定在同一個檔案的 `PP.userRules`。
 - 回覆風格：`data/cards.js` 的 `PP.options`（`bonus` 小費、`rule` 違反的規則、`note` 結算頁的一句話、`spoil` 會讓這單不算完美、`doc`＋`lines` 附在回覆後面、`tail` 加在回覆最後一句、`later` 隔天日報的後果 `{ who, rice, line }`）。
+- 模型的專屬設定在 `data/models.js`：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每位客人出現伺服器繁忙卡的機率，每天最多一次）、`aliases`（被叫錯名字）、`dumb`（降智日）。
 - 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在 `data/models.js` 的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
 - 新閒聊：`data/chatter.js`。
 - 改了任何中文內容之後跑 `npm run simplified`，重產「用簡體回覆」的字表。
