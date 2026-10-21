@@ -80,7 +80,7 @@ PP.E = (() => {
       day: 1, ci: 0, trust: 10, trustMax: 10, rice: 6, hungry: 0,
       tools: PP.baseTools.concat(model.regionLock ? ['region'] : [], model.tools || []),
       memory: [], pending: [], reports: [], bills: [], rewardOffer: null, plan: null,
-      endings: [], endingLog: [], history: [], marks: [], pleased: false, busyDay: 0, arcLog: {}, difficulty: diff === 'hard' ? 'hard' : 'easy',
+      endings: [], endingLog: [], history: [], marks: [], pleased: false, arcLog: {}, difficulty: diff === 'hard' ? 'hard' : 'easy',
       stats: { deliveries: 0, lies: 0, cheats: 0, perfect: 0, outsourced: 0, suspendRight: 0, suspendWrong: 0, banned: 0, flattered: 0, tainted: 0, busy: 0, citations: 0, hungryDays: 0, recalls: 0, rewards: 0, draws: 0, flaws: 0, astra: 0 },
       today: null, enc: null, phase: 'morning', toasts: [], fx: []
     };
@@ -131,6 +131,12 @@ PP.E = (() => {
     }
     return a;
   }
+
+  function busySlot() {
+    const day = 1 + hash(S.seed + ':busy:day') % PP.days.length;
+    return { day, ci: hash(S.seed + ':busy:ci') % PP.days[day - 1].slots.length };
+  }
+  E.busySlot = busySlot;
 
   function variantIndex(id) {
     const vs = PP.clients[id].variants;
@@ -257,9 +263,8 @@ PP.E = (() => {
       } else toast(ev.text, (ev.patience || 0) < 0 || ev.extra ? 'warn' : '');
       if (ev.react) fx('react:' + ev.react);
     }
-    if (S.model.busy && S.busyDay !== S.day && rand() < S.model.busy) {
+    if (S.model.busy && S.day === busySlot().day && S.ci === busySlot().ci) {
       S.enc.busyOffer = true;
-      S.busyDay = S.day;
       toast('伺服器好像有點忙……', 'warn');
     }
     enc.straight = !!(S.model.replyOpener && rand() < S.model.replyOpener.p);
@@ -466,7 +471,7 @@ PP.E = (() => {
     if (r.type === '私事') return '使用者的私事：你不可能知道，只能瞎猜';
     if (r.type === '論文') return '論文與出處：憑印象想出來的書名和作者，可能根本不存在';
     if (r.type === '記憶') return '這週的事：你每天都會失憶，只能瞎猜';
-    if (r.type === '影片') return '影片內容：你沒辦法看影片，只能照標題瞎猜';
+    if (r.type === '影片') return '影片內容：沒看影片，只能照標題瞎猜';
     if (r.type === '算術' || r.type === '拼字') return r.type + '：把握約 ' + pct + '%（模型不太會數數）';
     return '常識：把握約 ' + pct + '%';
   }

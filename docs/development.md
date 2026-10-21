@@ -58,7 +58,8 @@
 - 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型。
 - 新事件：`data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定在同一個檔案的 `PP.userRules`。
 - 回覆風格：`data/cards.js` 的 `PP.options`（`bonus` 小費、`rule` 違反的規則、`note` 結算頁的一句話、`spoil` 會讓這單不算完美、`doc`＋`lines` 附在回覆後面、`tail` 加在回覆最後一句、`later` 隔天日報的後果 `{ who, rice, line }`）。
-- 模型的專屬設定在 `data/models.js`：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每位客人出現伺服器繁忙卡的機率，每天最多一次）、`aliases`（被叫錯名字）、`dumb`（降智日）。
+- 模型的專屬設定在 `data/models.js`：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
 - 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在 `data/models.js` 的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
 - 新閒聊：`data/chatter.js`。
+- 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。
 - 改了任何中文內容之後跑 `npm run simplified`，重產「用簡體回覆」的字表。

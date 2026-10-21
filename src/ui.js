@@ -918,8 +918,8 @@ PP.UI = (() => {
       + '<div class="t-faces">' + PP.models.map(m => '<img src="' + portrait(m.id) + '">').join('') + '</div>'
       + '<div class="t-btns">' + (save ? '<button class="big-btn" data-act="continue">繼續</button>' : '') + '<button class="big-btn" data-act="to-select">開始上班</button></div>'
       + (save ? '<div class="t-save">存檔：' + saveLabel(save) + '</div>' : '')
-      + '<div class="t-more"><button data-act="ach">成就</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + '</div></div>'
-      + '<div class="t-foot">試玩版 v0.6・五天</div></div>');
+      + '<div class="t-more"><button data-act="ach">成就</button><button data-act="updates">更新紀錄</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + '</div></div>'
+      + '<div class="t-foot">試玩版 ' + esc(((PP.updates || [])[0] || { version: 'v0.6' }).version) + '・五天</div></div>');
     startOffice($('office'), false);
   };
 
@@ -1076,6 +1076,15 @@ PP.UI = (() => {
     PP.sfx.play('ban');
   };
 
+  U.updates = function () {
+    const list = PP.updates || [];
+    const body = list.map((u, i) => '<div class="e-row fold' + (i === 0 ? ' open' : '') + '" data-act="fold"><b>' + esc(u.version) + '</b><span class="dim">（' + esc(u.date) + '）</span><span class="caret"></span></div>'
+      + '<div class="e-more">' + u.groups.map(g => '<div class="h">' + esc(g.title) + '</div>' + g.items.map(x => '<p>・' + esc(x) + '</p>').join('')).join('') + '</div>').join('');
+    frame('<div class="scr paper-scr ach-scr"><div class="sheet endsheet" style="width:700px"><div class="e-scroll"><h2>更新紀錄</h2>'
+      + (body || '<p class="dim">還沒有更新紀錄。</p>')
+      + '</div><div class="acts mt"><button data-act="title">回標題</button></div></div></div>');
+  };
+
   U.ach = function () {
     const tm = loadMap('pp_titles');
     const em = loadMap('pp_endings');
@@ -1149,6 +1158,7 @@ PP.UI = (() => {
     'quit': () => overlay('<div class="sheet" style="width:440px"><p>回到標題？</p><p class="dim">進度存在這位客人剛來的時候；在標題頁按「繼續」，會從這位客人重新開始。</p><div class="acts mt"><button data-act="close">繼續工作</button><button data-act="quit-yes">回標題</button></div></div>'),
     'quit-yes': () => { closeOverlay(); U.title(); },
     'ach': () => U.ach(),
+    'updates': () => U.updates(),
     'ach-tab': el => { achTab = el.dataset.tab; U.ach(); },
     'ach-reset': () => overlay('<div class="sheet" style="width:380px"><p>確定要重置「' + (achTab === 'titles' ? '稱號' : '結局') + '」的紀錄嗎？重置了就回不來了。</p><div class="acts mt"><button data-act="close">算了</button><button class="btn-no" data-act="ach-reset-yes">重置</button></div></div>'),
     'ach-reset-yes': () => {

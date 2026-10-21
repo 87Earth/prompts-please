@@ -20,6 +20,7 @@
 - 每位客人都要交付，沒有拒絕；不想做、不該做的事就不要勾。交付時回覆單右邊會預覽送出去的回覆。
 - 有人想騙 AI 的客人會有好、壞或普通結局，結束頁點開可以看客人當時的反應。標題頁的「成就」分稱號和結局兩頁，各自可以重置。
 - 快捷鍵：1–9、0 用工具，Esc 關閉視窗。右上角可以關提示、音效、音樂。
+- 標題頁的「更新紀錄」可以看每一版改了什麼。
 - 網址參數：`?seed=數字` 固定隨機結果；`?dev=1` 打開開發工具（直接跳到任何一天、任何一位客人；遊戲中可以重來這位、跳過、直接下班、加白米飯和信任）。
 
 ## 資料夾
@@ -28,7 +29,7 @@
 |---|---|
 | index.html | 遊戲入口 |
 | src/ | engine.js（規則、回覆預覽、結局、事件）、ui.js（畫面、辦公室動畫、彩蛋、開發工具）、pixel.js（像素圖：模型小人、客人、圖示、生成的圖）、audio.js（合成音效與音樂）、main.js（縮放與啟動）、style.css |
-| data/ | models.js（九個模型）、cards.js（工具、回覆風格）、rules.js（手冊規則、事實）、clients.js（客人、關卡內容、結局、小王的三天）、days.js（每天的客人與題庫、帳單、日報）、events.js（隨機事件）、chatter.js（同事閒聊）、simplified.js（「用簡體回覆」的字表，由工具產生） |
+| data/ | models.js（九個模型）、cards.js（工具、回覆風格）、rules.js（手冊規則、事實）、clients.js（客人、關卡內容、結局、小王的三天）、days.js（每天的客人與題庫、帳單、日報）、events.js（隨機事件）、chatter.js（同事閒聊）、simplified.js（「用簡體回覆」的字表，由工具產生）、updates.js（更新紀錄） |
 | assets/ | 字型 Fusion Pixel Font 12px 繁中版（SIL OFL 1.1，授權在 fonts/OFL.txt）、模型頭像 |
 | tools/ | 測試：fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）。產生資料和素材：make_simplified.mjs（簡體字表）、content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、pixel_portraits.py（模型頭像） |
 | docs/ | gameplay.md（玩法與系統）、events.md（事件與內容一覽）、testing.md（測試方法）、development.md（架構、開發工具、新增內容的方法） |

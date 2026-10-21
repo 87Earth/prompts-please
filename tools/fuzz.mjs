@@ -198,9 +198,9 @@ function check(S, where) {
     if (u && c.noUserRules) throw new Error('user rule on ' + c.id);
     if (c.noAlias && (c.alias || c.message !== PP.clients[c.id].message)) throw new Error('alias on ' + c.id);
     if (enc.busyOffer) {
-      const key = S.seed + ':' + S.day;
-      if (BUSY_DAYS.has(key)) throw new Error('two busy offers on day ' + S.day + ' of seed ' + S.seed);
-      BUSY_DAYS.add(key);
+      const b = E.busySlot();
+      if (BUSY_DAYS.has(S.seed) || S.day !== b.day || S.ci !== b.ci) throw new Error('busy offer outside its weekly slot, seed ' + S.seed);
+      BUSY_DAYS.add(S.seed);
       stats.busyOfferTotal += 1;
     }
     S.marks.forEach(m => { if (!MARKS.has(m)) throw new Error('unknown mark ' + m); });
