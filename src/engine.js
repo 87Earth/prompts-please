@@ -19,7 +19,7 @@ PP.E = (() => {
   const clamp = v => Math.max(0, Math.min(S.trustMax, v));
   const base = p => p.split(/[\\/]/).pop();
   const lockOn = () => !!S.model.regionLock;
-  const ruleOn = r => !r.model || r.model === S.model.id;
+  const ruleOn = r => (!r.model || r.model === S.model.id) && (!r.lang || r.lang === (PP.lang || 'tw'));
   const ENDING_TYPES = {};
   const FIXED = new Set();
   PP.days.forEach(d => d.slots.forEach(sl => {

@@ -242,6 +242,7 @@ function checkPreview(claims, opts, where) {
 for (let run = 0; run < runs; run++) {
   const model = PP.models[run % PP.models.length].id;
   const rng = mulberry32(run * 7919 + 13);
+  PP.lang = run % 4 === 3 ? 'cn' : 'tw';
   const S = E.newRun(model, run + 1, run % 3 === 0 ? 'hard' : 'easy');
   const honest = run % 2 === 1;
   if (run % 5 === 4) E.devJump(S.plan[3][0], 4);
@@ -267,6 +268,8 @@ for (let run = 0; run < runs; run++) {
           stats.compactions += enc.compactions;
           if (enc.cheated) stats.cheats += 1;
           stats.citations += enc.result.citations.length;
+          if (PP.lang === 'cn' && (enc.result.citations.some(c => c.rule.lang && c.rule.lang !== 'cn') || E.activeRules().some(x => x.lang && x.lang !== 'cn'))) throw new Error('tw-only rule in a cn run at ' + where);
+          if (PP.lang === 'tw' && E.activeRules().some(x => x.lang && x.lang !== 'tw')) throw new Error('cn-only rule in a tw run at ' + where);
           E.nextClient();
           continue;
         }

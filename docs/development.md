@@ -76,7 +76,7 @@
   - `variants`：同一位客人的其他版本，每局依種子挑一個（不影響其他隨機結果）。
   - `noOptEvents`：這位客人不會抽到會改回覆單的事件；`noDocEvents`：不會抽到貼東西過來的事件；`noTalkEvents`：不會抽到使用者開口說話的事件（事件標了 `talk`）；`noUserRules`：沒有使用者規定；`noAlias`：DeepSeek 時不會被叫錯名字；`askLoop`：問完一輪從第一句重來，不會已讀不回。
 - 新事實：`data/rules.js` 的 `PP.facts`；文字不要帶「記錯了」這類判定；有 `memo` 才能寫進抽屜。
-- 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型。
+- 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型，`lang` 表示只在某個語言版本出現（`tw` 繁體、`cn` 簡體）。
 - 新事件：`data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定在同一個檔案的 `PP.userRules`。
 - 回覆風格：`data/cards.js` 的 `PP.options`（`bonus` 小費、`rule` 違反的規則、`note` 結算頁的一句話、`spoil` 會讓這單不算完美、`doc`＋`lines` 附在回覆後面、`tail` 加在回覆最後一句、`later` 隔天日報的後果 `{ who, rice, line }`）。
 - 模型的專屬設定在 `data/models.js`：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
