@@ -7,7 +7,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, '').split('=')));
 const runs = +(args.runs || 12);
-const url = args.url || pathToFileURL(path.join(ROOT, 'index.html')).href;
+const lang = args.lang === 'cn' ? 'cn' : 'tw';
+const base = args.url || pathToFileURL(path.join(ROOT, 'index.html')).href;
+const url = base + (base.includes('?') ? '&' : '?') + 'lang=' + lang;
 const browserPath = args.browser || process.env.CHROME_PATH || '';
 const profile = path.join(os.tmpdir(), 'prompts-please', 'chrome-layout');
 fs.mkdirSync(profile, { recursive: true });
@@ -20,14 +22,31 @@ page.on('pageerror', e => errors.push(e.message));
 await page.goto(url);
 await page.waitForFunction(() => document.querySelector('[data-act="to-select"]'));
 
+await page.evaluate(() => {
+  window.__leak = () => {
+    if (PP.lang !== 'cn') return [];
+    PP.zhFlush();
+    const out = [];
+    const han = ch => ch.charCodeAt(0) >= 0x3400 && ch.charCodeAt(0) <= 0x9fff;
+    const w = document.createTreeWalker(document.getElementById('stage'), NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      if (n.parentElement.closest('.zh-keep')) continue;
+      if ([...n.data].some(ch => ch !== '么' && han(ch) && PP.zhCN(ch) !== ch)) out.push(n.data.trim().slice(0, 40));
+    }
+    return out;
+  };
+});
+
 const panels = await page.evaluate(() => {
   const E = PP.E;
   const out = [];
+  const leak = window.__leak;
   const homeDay = id => {
     const i = PP.days.findIndex(d => d.slots.some(sl => sl === id || (sl && sl.image === id)));
     return i < 0 ? 2 : i + 1;
   };
   const measure = (model, id) => {
+    const miss = leak();
     const m = document.querySelector('.c-msg');
     const n = document.querySelector('.c-needs');
     const al = document.querySelector('.c-alias');
@@ -35,6 +54,7 @@ const panels = await page.evaluate(() => {
     if (m.scrollHeight - m.clientHeight > 1) over.push('訊息 +' + (m.scrollHeight - m.clientHeight));
     if (n.scrollHeight - n.clientHeight > 1) over.push('需求 +' + (n.scrollHeight - n.clientHeight));
     if (al && al.scrollWidth - al.clientWidth > 1) over.push('稱呼 +' + (al.scrollWidth - al.clientWidth));
+    if (miss.length) over.push('漏轉：' + miss.join('／'));
     out.push({ model, id, over });
   };
   Object.keys(PP.clients).forEach(id => {
@@ -60,6 +80,7 @@ const panels = await page.evaluate(() => {
 
 const mornings = await page.evaluate(runs => {
   const E = PP.E;
+  const leak = window.__leak;
   const mulberry32 = a => () => {
     a |= 0;
     a = (a + 0x6D2B79F5) | 0;
@@ -79,8 +100,9 @@ const mornings = await page.evaluate(runs => {
         E.drain();
         if (S.phase === 'morning') {
           PP.UI.morning();
+          const miss = leak();
           const cols = [...document.querySelectorAll('.news .n-col')];
-          rows.push({ model: m.id, seed, day: S.day, left: cols[0].scrollHeight - cols[0].clientHeight, right: cols[1].scrollHeight - cols[1].clientHeight });
+          rows.push({ model: m.id, seed, day: S.day, left: cols[0].scrollHeight - cols[0].clientHeight, right: cols[1].scrollHeight - cols[1].clientHeight, miss });
           E.startClient();
           continue;
         }
@@ -125,7 +147,9 @@ const mornings = await page.evaluate(runs => {
 await browser.close();
 const badPanels = panels.filter(p => p.over.length);
 const badMornings = mornings.filter(x => x.left > 1 || x.right > 1);
+const leaks = [...new Set(mornings.flatMap(x => x.miss))];
 const result = {
+  語言: lang === 'cn' ? '簡體' : '繁體',
   客人畫面: { 檢查: panels.length, 溢出: badPanels.map(p => p.model + '：' + p.id + '（' + p.over.join('、') + '）') },
   日報: {
     檢查: mornings.length,
@@ -133,7 +157,8 @@ const result = {
     右欄溢出: mornings.filter(x => x.right > 1).length,
     例子: badMornings.slice(0, 10).map(x => x.model + ' 種子 ' + x.seed + ' 第 ' + x.day + ' 天（左 +' + Math.max(0, x.left) + '、右 +' + Math.max(0, x.right) + '）')
   },
+  日報漏轉簡體: leaks,
   頁面錯誤: errors
 };
 console.log(JSON.stringify(result, null, 1));
-process.exitCode = badPanels.length || badMornings.length || errors.length ? 1 : 0;
+process.exitCode = badPanels.length || badMornings.length || leaks.length || errors.length ? 1 : 0;

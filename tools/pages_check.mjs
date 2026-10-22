@@ -12,9 +12,10 @@ const ref = args.ref || 'HEAD';
 const prefix = '/' + (args.base || 'prompts-please') + '/';
 const browserPath = args.browser || process.env.CHROME_PATH || '';
 const RUNS = [
-  ['claude', '15', 'good', 'easy'],
-  ['deepseek', '7', 'good', 'hard'],
-  ['gpt', '15', 'trap45', 'easy']
+  ['claude', '15', 'good', 'easy', 'tw'],
+  ['deepseek', '7', 'good', 'hard', 'tw'],
+  ['gpt', '15', 'trap45', 'easy', 'tw'],
+  ['seed', '15', 'good', 'easy', 'cn']
 ];
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.md': 'text/markdown; charset=utf-8', '.txt': 'text/plain; charset=utf-8', '.png': 'image/png', '.woff2': 'font/woff2' };
 
@@ -46,8 +47,8 @@ if (!site) {
   site = 'http://127.0.0.1:' + server.address().port + prefix;
 }
 
-function playtest(model, seed, mode, diff) {
-  const a = [path.join(ROOT, 'tools', 'playtest.mjs'), '--url=' + site, '--model=' + model, '--seed=' + seed, '--mode=' + mode, '--diff=' + diff, '--shots=0'];
+function playtest(model, seed, mode, diff, lang) {
+  const a = [path.join(ROOT, 'tools', 'playtest.mjs'), '--url=' + site, '--model=' + model, '--seed=' + seed, '--mode=' + mode, '--diff=' + diff, '--lang=' + lang, '--shots=0'];
   if (browserPath) a.push('--browser=' + browserPath);
   return new Promise(resolve => {
     const p = spawn(process.execPath, a, { cwd: ROOT });
@@ -62,7 +63,7 @@ function playtest(model, seed, mode, diff) {
       } catch (e) {
         j = null;
       }
-      resolve({ run: model + ' 種子 ' + seed + ' ' + mode + (diff === 'hard' ? '（困難）' : ''), code, phase: j && j.final && j.final.phase, trust: j && j.final && j.final.trust, errors: j ? j.errors : [err.trim() || out.trim()] });
+      resolve({ run: model + ' 種子 ' + seed + ' ' + mode + (diff === 'hard' ? '（困難）' : '') + (lang === 'cn' ? '（簡體）' : ''), code, phase: j && j.final && j.final.phase, trust: j && j.final && j.final.trust, errors: j ? j.errors : [err.trim() || out.trim()] });
     });
   });
 }
@@ -77,11 +78,11 @@ async function phone() {
   page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   page.on('requestfailed', r => errors.push('requestfailed: ' + r.url()));
   await page.emulate({ viewport: { width: 844, height: 390, deviceScaleFactor: 3, isMobile: true, hasTouch: true }, userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Mobile Safari/537.36' });
-  await page.goto(site + '?seed=15', { waitUntil: 'networkidle0' });
+  await page.goto(site + '?seed=15&lang=tw', { waitUntil: 'networkidle0' });
   await page.waitForFunction(() => document.querySelector('[data-act="to-select"]'));
   const sleep = ms => new Promise(r => setTimeout(r, ms));
   const info = await page.evaluate(() => ({
-    fonts: document.fonts.check('12px FP') && document.fonts.check('12px FPM') && [...document.fonts].every(f => f.status === 'loaded'),
+    fonts: document.fonts.check('12px ' + PP.font()) && document.fonts.check('12px ' + PP.font(true)) && [...document.fonts].filter(f => [PP.font(), PP.font(true)].includes(f.family.replace(/["']/g, ''))).every(f => f.status === 'loaded'),
     portraits: [...document.querySelectorAll('.t-faces img')].every(i => i.naturalWidth > 0),
     touch: PP.TOUCH
   }));

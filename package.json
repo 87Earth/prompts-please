@@ -3,13 +3,16 @@
   "private": true,
   "description": "扮演大型語言模型在工位上班的網頁小遊戲",
   "scripts": {
-    "test": "node tools/fuzz.mjs 2700 && node tools/fuzz.mjs aliases && node tools/fuzz.mjs save",
+    "test": "node tools/fuzz.mjs 2700 && node tools/fuzz.mjs aliases && node tools/fuzz.mjs save && node tools/zh_check.mjs",
     "playtest": "node tools/playtest.mjs",
-    "simplified": "node tools/make_simplified.mjs"
+    "zh": "node tools/zh_check.mjs"
   },
   "devDependencies": {
+    "@fontsource/fusion-pixel-12px-monospaced-sc": "^5.3.0",
     "@fontsource/fusion-pixel-12px-monospaced-tc": "^5.3.0",
+    "@fontsource/fusion-pixel-12px-proportional-sc": "^5.3.0",
     "@fontsource/fusion-pixel-12px-proportional-tc": "^5.3.0",
+    "fontkit": "^2.0.4",
     "opencc-js": "^1.4.2",
     "puppeteer-core": "^25.15.0"
   }

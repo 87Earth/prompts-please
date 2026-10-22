@@ -9,8 +9,9 @@ const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, 
 const model = args.model || 'claude';
 const seed = args.seed || '1';
 const mode = args.mode || 'good';
+const lang = args.lang === 'cn' ? 'cn' : 'tw';
 const tmp = path.join(os.tmpdir(), 'prompts-please');
-const out = args.out || path.join(tmp, 'shots', model + '_' + mode + '_' + seed);
+const out = args.out || path.join(tmp, 'shots', model + '_' + mode + '_' + seed + (lang === 'cn' ? '_cn' : ''));
 const shots = args.shots !== '0';
 const width = +(args.w || 1600);
 const height = +(args.h || 900);
@@ -205,17 +206,37 @@ async function main() {
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('requestfailed', r => errors.push('requestfailed: ' + r.url()));
   const base = args.url || pathToFileURL(path.join(ROOT, 'index.html')).href;
-  const url = base + (base.includes('?') ? '&' : '?') + 'seed=' + seed;
+  const url = base + (base.includes('?') ? '&' : '?') + 'seed=' + seed + '&lang=' + lang;
   await page.goto(url, { waitUntil: 'load' });
   await page.waitForFunction(() => document.querySelector('[data-act="to-select"]'));
   await sleep(300);
-  const fontOk = await page.evaluate(() => document.fonts.check('12px FP') && document.fonts.check('12px FPM') && [...document.fonts].every(f => f.status === 'loaded'));
+  const fontOk = await page.evaluate(() => document.fonts.check('12px ' + PP.font()) && document.fonts.check('12px ' + PP.font(true)) && [...document.fonts].filter(f => [PP.font(), PP.font(true)].includes(f.family.replace(/["']/g, ''))).every(f => f.status === 'loaded'));
   if (!fontOk) errors.push('font not loaded');
   await page.addScriptTag({ content: bot });
 
+  await page.evaluate(() => {
+    window.__leak = () => {
+      if (PP.lang !== 'cn') return [];
+      PP.zhFlush();
+      const out = [];
+      const han = ch => ch.charCodeAt(0) >= 0x3400 && ch.charCodeAt(0) <= 0x9fff;
+      const w = document.createTreeWalker(document.getElementById('stage'), NodeFilter.SHOW_TEXT);
+      for (let n = w.nextNode(); n; n = w.nextNode()) {
+        if (n.parentElement.closest('.zh-keep')) continue;
+        if ([...n.data].some(ch => ch !== '么' && han(ch) && PP.zhCN(ch) !== ch)) out.push(n.data.trim().slice(0, 40));
+      }
+      return out;
+    };
+  });
+  const leaks = new Set();
   const shot = async name => {
     n += 1;
     if (shots) await page.screenshot({ path: path.join(out, String(n).padStart(2, '0') + '_' + name + '.png') });
+    (await page.evaluate(() => window.__leak())).forEach(t => {
+      if (leaks.has(t)) return;
+      leaks.add(t);
+      errors.push('漏轉簡體（' + name + '）：' + t);
+    });
   };
   const ev = (fn, ...a) => page.evaluate(fn, ...a);
   const info = () => ev(() => window.__bot.info());

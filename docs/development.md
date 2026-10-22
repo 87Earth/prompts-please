@@ -2,12 +2,13 @@
 
 ## 架構
 
-- 純前端，沒有建置步驟：`index.html` 依序載入 `src/pixel.js`、`src/audio.js`、`data/*.js`、`src/engine.js`、`src/ui.js`、`src/main.js`，全部掛在全域物件 `PP` 上。用瀏覽器直接打開就能玩（`file://` 也可以）。
+- 純前端，沒有建置步驟：`index.html` 依序載入 `src/pixel.js`、`src/audio.js`、`data/*.js`、`src/vendor/opencc-js/t2cn.js`、`src/lang.js`、`src/engine.js`、`src/ui.js`、`src/main.js`，全部掛在全域物件 `PP` 上。用瀏覽器直接打開就能玩（`file://` 也可以）。
 - `src/engine.js`（`PP.E`）：遊戲規則與狀態，不碰畫面。亂數的狀態存在 `S.rs`，同一個種子的結果相同，存檔讀回後的發展也相同。
 - `src/ui.js`（`PP.UI`）：畫面、辦公室動畫、彩蛋、開發工具。
+- `src/lang.js`：語言切換與繁轉簡，見下面的「簡體中文」。
 - `src/pixel.js`：像素圖（模型小人、客人頭像、圖示、生成的圖）。`src/audio.js`：Web Audio 即時合成的音效與音樂。`src/main.js`：縮放與啟動。
 - `data/`：所有內容都是資料（模型、工具、規則、事實、客人、每天的安排、事件、閒聊），新增內容大多只改這裡。
-- 存檔與成就存在瀏覽器的 localStorage：`pp_save`（中途存檔）、`pp_endings`、`pp_titles`。
+- 存檔與設定存在瀏覽器的 localStorage：`pp_save`（中途存檔）、`pp_endings`、`pp_titles`、`pp_lang`（語言）、`pp_diff`（難度）、`pp_hints`（提示開關）。
 
 測試和自動試玩的方法見 [testing.md](testing.md)。
 
@@ -17,10 +18,29 @@
 
 | 工具 | 用途 | 用法 |
 |---|---|---|
-| `make_simplified.mjs` | 產生 `data/simplified.js`：回覆單「用簡體回覆」用的繁轉簡字表，用 opencc-js 從遊戲文字裡出現過的字算出來 | 改了中文內容之後執行 `npm run simplified` |
+| `zh_check.mjs` | 簡體轉換檢查（`npm test` 會跑，見 [testing.md](testing.md)），也用來看簡體版長什麼樣子 | `npm run zh -- --show=<客人 id>` 列出那位客人所有文字的繁簡對照；`--show=<字詞>` 搜尋含那個詞的句子；`--show=fixes` 列出 `data/zh.js` 改到的句子和 OpenCC 原本的結果 |
 | `content_stats.mjs` | 從遊戲資料數出內容數量（模型、工具、規則、客人、事件、結局、稱號等），用來核對 [events.md](events.md) 的數字 | `node tools/content_stats.mjs` |
 | `make_favicon.mjs` | 把遊戲裡的白米飯像素圖畫成網站圖示（16、32、180 像素），寫進 `assets/` | `node tools/make_favicon.mjs`；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `pixel_portraits.py` | 把九個模型的半身圖去背、裁切、縮成 64×64 的像素頭像，寫進 `assets/sprites/portraits/`，另外在系統暫存資料夾輸出一張預覽圖 | 需要 Python 3、numpy、Pillow。用環境變數 `PP_CHAR_DIR` 指定圖檔資料夾：每個模型一個子資料夾，裡面放半身圖 `close.png`（例如 `claude/close.png`）。可以加一段 JSON 參數調整 `size`、`colors`、`tol`、`crop`（左、上、右、下，預設 `[150, 20, 874, 744]`，以 1024 像素寬的圖為準）、`crops`（各模型分別設定）。原始的半身圖不在這個倉庫裡 |
+
+## 簡體中文
+
+- 繁體是原稿，所有內容只寫繁體。玩家選了简体中文時，畫面上的字在顯示前轉成簡體：`src/lang.js` 用 opencc-js 做 OpenCC 的「臺灣正體 → 大陸簡體」轉換，連臺灣用語一起換（例如「影片」→「视频」、「檔案」→「文件」、「程式碼」→「代码」）。`src/vendor/opencc-js/t2cn.js` 是 npm 套件 opencc-js 原封不動的 `dist/umd/t2cn.js`，授權檔在同一個資料夾。
+- `data/zh.js` 的 `PP.ZH_FIX` 是遊戲專用的用語對照（繁體寫法 → 簡體寫法）。它和 OpenCC 的臺灣用語詞典一起做最長詞匹配，同一個詞以這裡為準，所以「執行程式」裡的「行程」不會被誤配。用在三種情況：
+  - OpenCC 轉錯的詞，例如「行程」會變成「进程」、「計算機」要變「计算器」（大陸的「计算机」是電腦）、「寫進程式碼」被斷成「进程＋式码」。
+  - 大陸讀者不熟的臺灣用語，例如「預設」→「默认」、「群組」→「群聊」、「貼文」→「帖子」、「牠」→「它」、「德州」→「得州」。
+  - 簡中字型沒有的字：「阿嬤」→「奶奶」、「諂媚」→「奉承」。
+- 轉換在畫面上做：`MutationObserver` 把新加進畫面的文字轉成簡體，存檔和遊戲資料都還是繁體，所以切換語言不影響存檔。寫畫面程式時要注意：
+  - canvas 上的字要自己轉：文字用 `PP.L(文字)`，字型用 `'12px ' + PP.font()`（等寬字型 `PP.font(true)`）；畫好會快取的圖，快取鍵要帶 `PP.lang`。
+  - 設了 `innerHTML` 之後馬上量尺寸的地方，先呼叫 `PP.zhFlush()` 讓轉換先完成（`frame()`、`overlay()` 已經呼叫了）。
+  - OpenCC 的轉換不是冪等的：「檔案」轉成「文件」之後再轉一次，會被當成臺灣的「文件」變成「文档」。所以不要把 `PP.zhCN()` 轉過的字再放進畫面；一定要放的時候，包在 `class="zh-keep"` 裡（例如回覆單「用簡體回覆」的預覽），`zh-keep` 裡的字不會被轉換。語言按鈕的「繁體中文」也是靠它保持繁體。也不要從畫面讀回文字再寫回去（`textContent +=`、`cloneNode`）。
+- 字型：簡體用 Fusion Pixel 12px 簡中版（CSS 字型名 `FPS`、`FPMS`）。`html` 的 `lang` 是 `zh-Hans` 時，CSS 變數 `--fp`、`--fpm` 換成簡中版。兩版的字寬完全相同，版面不會變。
+- 語言存在 localStorage 的 `pp_lang`。第一次打開時看瀏覽器語言：zh-CN、zh-SG、zh-Hans 開簡體，其他開繁體。網址參數 `?lang=cn`、`?lang=tw` 可以直接指定。
+- 新增的每一段文字都要有繁簡兩種版本，步驟：
+  1. 照常寫繁體。
+  2. `npm run zh -- --show=<客人 id>`（或 `--show=<字詞>`）列出繁簡對照，把大陸讀者看不懂或不自然的詞加進 `data/zh.js`。
+  3. `npm test`：其中的 `zh_check.mjs` 會檢查轉換流程和 OpenCC 一致、對照表每一條都有作用、對照表的簡體寫法不會再被轉、繁中和簡中字型都不缺字。
+  4. `node tools/layout_check.mjs --lang=cn`，再用 `--lang=cn` 自動試玩並看截圖。
 
 ## 開發工具
 
@@ -62,4 +82,4 @@
 - 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在 `data/models.js` 的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
 - 新閒聊：`data/chatter.js`。
 - 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。
-- 改了任何中文內容之後跑 `npm run simplified`，重產「用簡體回覆」的字表。
+- 改了任何中文內容之後跑 `npm test`，新增的文字照「簡體中文」一節檢查簡體版。

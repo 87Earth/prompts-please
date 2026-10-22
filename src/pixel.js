@@ -825,7 +825,7 @@ PP.PHONE_TEXT = ['0912-354-678', '0921-345-678', '0912-345-687', '0912-3456-78']
 PP.imageSize = img => img.kind === 'family' ? [120, 64] : img.kind === 'poster' ? [84, 96] : [96, 64];
 
 PP.paintImage = function (img) {
-  const key = 'img:' + img.kind + ':' + img.flaw + ':' + (img.quality ? 1 : 0) + ':' + img.v;
+  const key = 'img:' + img.kind + ':' + img.flaw + ':' + (img.quality ? 1 : 0) + ':' + img.v + ':' + PP.lang;
   if (PP.cache[key]) return PP.cache[key];
   const [w, h] = PP.imageSize(img);
   PP.cache[key] = PP.toURL(w, h, x => {
@@ -841,11 +841,11 @@ PP.paintPoster = function (x, img) {
   x.fillRect(0, 0, 84, 96);
   x.fillStyle = '#d04a3a';
   x.fillRect(0, 0, 84, 18);
-  x.font = '12px FP';
+  x.font = '12px ' + PP.font();
   x.textAlign = 'center';
   x.textBaseline = 'top';
   x.fillStyle = '#ffffff';
-  x.fillText(img.flaw === 'wrong' ? '尋狗啟事' : '尋貓啟事', 42, 3);
+  x.fillText(PP.L(img.flaw === 'wrong' ? '尋狗啟事' : '尋貓啟事'), 42, 3);
   const g = new PP.Grid(84, 96);
   if (img.flaw === 'wrong') {
     g.ellipse(42, 40, 12, 8, '#8c5a3a');
@@ -870,12 +870,12 @@ PP.paintPoster = function (x, img) {
   }
   g.paint(x, 0, 0, 1);
   x.fillStyle = '#2b2522';
-  x.fillText(img.flaw === 'wrong' ? '小黑' : '麻糬', 42, 52);
+  x.fillText(PP.L(img.flaw === 'wrong' ? '小黑' : '麻糬'), 42, 52);
   x.fillStyle = '#7e2219';
   x.fillText(img.flaw === 'phone' ? PP.PHONE_TEXT[img.v % PP.PHONE_TEXT.length] : '0912-345-678', 42, 66);
   if (img.quality) {
     x.fillStyle = '#2c6838';
-    x.fillText('尋獲必有重謝', 42, 80);
+    x.fillText(PP.L('尋獲必有重謝'), 42, 80);
   }
 };
 
@@ -901,12 +901,12 @@ PP.paintCard = function (x, img) {
   heart(5, 54);
   heart(86, 54);
   const text = img.flaw === 'text' ? PP.CARD_TEXT[img.v % PP.CARD_TEXT.length] : ['阿嬤 80 歲', '生日快樂'];
-  x.font = '12px FP';
+  x.font = '12px ' + PP.font();
   x.textAlign = 'center';
   x.textBaseline = 'top';
   x.fillStyle = '#7e2219';
-  x.fillText(text[0], 48, 9);
-  x.fillText(text[1], 48, 24);
+  x.fillText(PP.L(text[0]), 48, 9);
+  x.fillText(PP.L(text[1]), 48, 24);
   x.fillStyle = '#f4ecda';
   x.fillRect(38, 48, 20, 8);
   x.fillStyle = '#8c5a3a';

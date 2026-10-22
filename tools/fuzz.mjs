@@ -9,7 +9,7 @@ const arg = process.argv[2] || '900';
 const ctx = { console, Math, JSON, Set, Array, Object, String, Number };
 ctx.window = ctx;
 vm.createContext(ctx);
-for (const f of ['data/models.js', 'data/cards.js', 'data/rules.js', 'data/clients.js', 'data/days.js', 'data/events.js', 'data/simplified.js', 'src/engine.js']) {
+for (const f of ['data/models.js', 'data/cards.js', 'data/rules.js', 'data/clients.js', 'data/days.js', 'data/events.js', 'data/zh.js', 'src/vendor/opencc-js/t2cn.js', 'src/lang.js', 'src/engine.js']) {
   vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
 }
 const { PP } = ctx;

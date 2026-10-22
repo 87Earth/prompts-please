@@ -25,7 +25,7 @@ window.PP = window.PP || {};
   fit();
 
   const fonts = document.fonts && document.fonts.load
-    ? Promise.all([document.fonts.load('12px FP'), document.fonts.load('12px FPM')])
+    ? Promise.all([document.fonts.load('12px ' + PP.font()), document.fonts.load('12px ' + PP.font(true))])
     : Promise.resolve();
   fonts.catch(() => null).then(() => PP.UI.init());
 })();

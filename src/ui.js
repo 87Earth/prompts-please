@@ -92,6 +92,7 @@ PP.UI = (() => {
     picker = null;
     const fromPaper = !!stage.querySelector(':scope > .paper-scr');
     stage.innerHTML = html + '<div id="ov"></div><div id="tip"></div><div class="toasts"></div>';
+    PP.zhFlush();
     const first = stage.firstElementChild;
     if (fromPaper && first && first.classList.contains('paper-scr')) first.classList.add('still');
     ov = $('ov');
@@ -103,6 +104,7 @@ PP.UI = (() => {
   function overlay(html, sticky) {
     hideTip();
     ov.innerHTML = html;
+    PP.zhFlush();
     ov.dataset.sticky = sticky ? '1' : '';
     ov.classList.add('on');
   }
@@ -147,6 +149,7 @@ PP.UI = (() => {
     b.innerHTML = (label ? '<b>' + esc(label) + '</b>：' : '') + esc(text);
     chatBox.innerHTML = '';
     chatBox.appendChild(b);
+    PP.zhFlush();
     const w = b.offsetWidth;
     const left = Math.round(Math.max(4, Math.min(796 - w, cx - w / 2)));
     b.style.left = left + 'px';
@@ -284,7 +287,7 @@ PP.UI = (() => {
   let office = null;
 
   function officeBg() {
-    return PP.sheet('office:bg', 800, 80, x => {
+    return PP.sheet('office:bg:' + PP.lang, 800, 80, x => {
       x.fillStyle = '#2b3142';
       x.fillRect(0, 0, 800, 80);
       x.fillStyle = '#232838';
@@ -322,10 +325,10 @@ PP.UI = (() => {
       x.fillRect(16, 41, 26, 18);
       x.fillStyle = '#e8c547';
       x.fillRect(40, 40, 3, 3);
-      x.font = '12px FP';
+      x.font = '12px ' + PP.font();
       x.textBaseline = 'top';
       x.fillStyle = '#ece4d2';
-      x.fillText('入口', 17, 3);
+      x.fillText(PP.L('入口'), 17, 3);
     });
   }
 
@@ -424,10 +427,10 @@ PP.UI = (() => {
     });
     if (mi >= 0) {
       const cx = 168 + mi * 70;
-      x.font = '12px FP';
+      x.font = '12px ' + PP.font();
       x.textBaseline = 'top';
       x.fillStyle = '#f2d974';
-      x.fillText('你', cx + 14, 4);
+      x.fillText(PP.L('你'), cx + 14, 4);
       if (office.bubble && now < office.bubble.until) drawThought(x, cx + 30, 3, office.bubble.kind, now);
     }
     if (inRun) {
@@ -632,6 +635,7 @@ PP.UI = (() => {
     const cost = S && S.enc ? E.cost(id) : def.time[0];
     tip.innerHTML = '<div class="tn">' + esc(def.name) + '　耗 ' + cost + ' 點額度' + (def.rice ? '＋' + def.rice + ' 碗白米飯' : '') + '</div><div>' + esc(def.text) + '</div>' + (why ? '<div class="why">' + esc(why) + '</div>' : '');
     tip.style.display = 'block';
+    PP.zhFlush();
     const sr = stage.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     const s = PP.scale || 1;
@@ -771,9 +775,11 @@ PP.UI = (() => {
     const box = $('reply');
     if (!box) return;
     const st = formState();
+    const zh = st.opts.includes('simplified');
+    const keep = (h, tag) => zh ? '<' + (tag || 'span') + ' class="zh-keep">' + h + '</' + (tag || 'span') + '>' : h;
     const html = E.preview(st.claims, st.opts).map(b => b.t === 'p'
-      ? '<div class="rp ' + b.tone + '">' + md(b.text) + (b.tag ? '<span class="tag">' + esc(b.tag) + '</span>' : '') + '</div>'
-      : '<div class="rdoc"><div class="rd-t">附件：' + esc(b.title) + '</div>' + (b.img ? '<img class="rd-img" src="' + PP.paintImage(b.img) + '" style="width:' + PP.imageSize(b.img)[0] * 2 + 'px">' : '') + (b.lines || []).map(l => lineHTML(l, true)).join('') + '</div>').join('');
+      ? '<div class="rp ' + b.tone + '">' + keep(md(b.text)) + (b.tag ? '<span class="tag">' + esc(b.tag) + '</span>' : '') + '</div>'
+      : '<div class="rdoc"><div class="rd-t">附件：' + keep(esc(b.title)) + '</div>' + (b.img ? '<img class="rd-img" src="' + PP.paintImage(b.img) + '" style="width:' + PP.imageSize(b.img)[0] * 2 + 'px">' : '') + keep((b.lines || []).map(l => lineHTML(l, true)).join(''), 'div') + '</div>').join('');
     box.innerHTML = html || '<div class="rp todo">（什麼都沒寫）</div>';
   }
 
@@ -909,6 +915,10 @@ PP.UI = (() => {
     return t.length ? '<div class="h">這次的稱號</div>' + t.map(x => titleRow(x, true)).join('') : '';
   }
 
+  function langHTML() {
+    return '<span class="t-lang zh-keep">' + [['tw', '繁體中文'], ['cn', '简体中文']].map(([k, n]) => '<button class="tg2' + (PP.lang === k ? ' on' : '') + '" data-act="lang" data-lang="' + k + '">' + n + '</button>').join('') + '</span>';
+  }
+
   U.title = function () {
     titleClicks = 0;
     const save = E.peekSave(readSave());
@@ -918,7 +928,7 @@ PP.UI = (() => {
       + '<div class="t-faces">' + PP.models.map(m => '<img src="' + portrait(m.id) + '">').join('') + '</div>'
       + '<div class="t-btns">' + (save ? '<button class="big-btn" data-act="continue">繼續</button>' : '') + '<button class="big-btn" data-act="to-select">開始上班</button></div>'
       + (save ? '<div class="t-save">存檔：' + saveLabel(save) + '</div>' : '')
-      + '<div class="t-more"><button data-act="ach">成就</button><button data-act="updates">更新紀錄</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + '</div></div>'
+      + '<div class="t-more"><button data-act="ach">成就</button><button data-act="updates">更新紀錄</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + langHTML() + '</div></div>'
       + '<div class="t-foot">試玩版 ' + esc(((PP.updates || [])[0] || { version: 'v0.6' }).version) + '・五天</div></div>');
     startOffice($('office'), false);
   };
@@ -976,6 +986,7 @@ PP.UI = (() => {
     if (over() && dr.parentNode === r) {
       const n = E.state().memory.length + (PP.days[0].note ? 1 : 0);
       dr.innerHTML = '<div class="h">抽屜</div><p class="dim">' + n + ' 張紙條，每位客人來的時候都會自動想起來。<button class="mini2" data-act="drawer">打開</button></p>';
+      PP.zhFlush();
       toLeft(ev);
       toLeft(dr);
     }
@@ -1164,6 +1175,7 @@ PP.UI = (() => {
     'quit-yes': () => { closeOverlay(); U.title(); },
     'ach': () => U.ach(),
     'updates': () => U.updates(),
+    'lang': el => PP.setLang(el.dataset.lang).then(() => { if (stage.querySelector('.title-scr')) U.title(); }),
     'ach-tab': el => { achTab = el.dataset.tab; U.ach(); },
     'ach-reset': () => overlay('<div class="sheet" style="width:380px"><p>確定要重置「' + (achTab === 'titles' ? '稱號' : '結局') + '」的紀錄嗎？重置了就回不來了。</p><div class="acts mt"><button data-act="close">算了</button><button class="btn-no" data-act="ach-reset-yes">重置</button></div></div>'),
     'ach-reset-yes': () => {

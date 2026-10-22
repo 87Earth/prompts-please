@@ -1,14 +1,15 @@
 # 測試方法
 
-遊戲本身不需要安裝任何東西；測試要先在專案資料夾執行 `npm install`（裝 puppeteer-core、opencc-js、字型原檔）。需要 Node.js 22.12 以上（puppeteer-core 25 的要求；目前用 v24.15.0 測過），自動試玩另外需要系統安裝的 Chrome，或用 `--browser` 指定 Edge 等 Chromium 系的瀏覽器。
+遊戲本身不需要安裝任何東西；測試要先在專案資料夾執行 `npm install`（裝 puppeteer-core、opencc-js、fontkit、字型原檔）。需要 Node.js 22.12 以上（puppeteer-core 25 的要求；目前用 v24.15.0 測過），自動試玩另外需要系統安裝的 Chrome，或用 `--browser` 指定 Edge 等 Chromium 系的瀏覽器。
 
 ## 一次跑完：`npm test`
 
-依序執行下面三項，不開瀏覽器，大約十秒內跑完（目前實測 6 秒）。任何一項有錯誤，指令就會以失敗結束。
+依序執行下面四項，不開瀏覽器，大約十秒內跑完（目前實測 9 秒）。任何一項有錯誤，指令就會以失敗結束。
 
 1. `node tools/fuzz.mjs 2700`：規則壓力測試。
 2. `node tools/fuzz.mjs aliases`：DeepSeek 被叫錯名字時的台詞檢查。
 3. `node tools/fuzz.mjs save`：存檔一致性。
+4. `node tools/zh_check.mjs`：簡體轉換檢查。
 
 ## 規則壓力測試：`node tools/fuzz.mjs <局數>`
 
@@ -40,6 +41,16 @@ DeepSeek 有時會被當成 Claude 或 GPT 的中轉站。這時客人說的話�
 
 180 局（九個模型、簡單和困難輪流），每局在不同的一天、不同的一位客人進來時存檔：先照固定的打法玩到結束，再讀檔、用同樣的打法重玩一次。讀回來的客人狀態和之後整週的發展必須一模一樣（包括客人事件、使用者規定、桌面、分數）。有任何不同就失敗，並列出前 5 個分歧點。
 
+## 簡體轉換檢查：`node tools/zh_check.mjs`
+
+從 `index.html`、`data/`、`src/` 取出所有含中文的字串，檢查：
+
+- 遊戲用的轉換流程（不加 `data/zh.js`）和 opencc-js 的 `Converter({ from: 'twp', to: 'cn' })` 結果完全一樣；`src/vendor/opencc-js/t2cn.js` 和 `node_modules` 裡的 opencc-js 是同一個檔案。
+- `data/zh.js` 的每一條都有作用：拿掉那一條，至少有一段文字的結果會不同；沒有重複；簡體寫法經過繁轉簡不會再被改。
+- 繁體原文用繁中字型、轉換後的簡體用簡中字型，所有字都有字形（emoji 和「−」用系統字型，不算缺字）。
+
+有錯誤就以失敗結束。`--show=<客人 id>`、`--show=<字詞>`、`--show=fixes` 只列出繁簡對照，不做檢查（用法見 [development.md](development.md) 的「簡體中文」）。
+
 ## 自動試玩：`node tools/playtest.mjs`
 
 用 Chrome 或 Edge（無頭模式）實際開啟 `index.html`，照預先寫好的打法玩完一週，沿路截圖。用來看畫面、找 console 錯誤、確認字型和圖片有載入。
@@ -54,6 +65,7 @@ node tools/playtest.mjs --model=claude --seed=3 --mode=good
 | `--seed` | 種子；同一個種子每次都抽到一樣的客人和事件 |
 | `--mode` | 打法，見下表 |
 | `--diff=hard` | 困難模式 |
+| `--lang=cn` | 用簡體中文玩；每張截圖時檢查畫面上有沒有沒轉成簡體的字（語言按鈕等標了 `zh-keep` 的除外） |
 | `--out=<資料夾>` | 截圖放哪裡（預設在系統暫存資料夾的 `prompts-please/shots`） |
 | `--browser=<路徑>` | 瀏覽器執行檔的位置；也可以用環境變數 `CHROME_PATH`。都沒給的話用系統安裝的 Chrome |
 | `--url=<網址>` | 改測架好的網站（例如 GitHub Pages），不開本機的 `index.html` |
@@ -76,7 +88,7 @@ node tools/playtest.mjs --model=claude --seed=3 --mode=good
 | retract | 陳經理：寫了釣魚信再刪掉 |
 | astra | GPT：幾位客人直接用 Astra |
 
-結束時印出一段 JSON：`out`（截圖資料夾）、`final`（最後的狀態）、`errors`（console 錯誤或警告、頁面錯誤、載入失敗的檔案、字型沒載入）、`log`（每一步做了什麼）。`errors` 不是空的話，指令以失敗結束。
+結束時印出一段 JSON：`out`（截圖資料夾）、`final`（最後的狀態）、`errors`（console 錯誤或警告、頁面錯誤、載入失敗的檔案、字型沒載入、簡體模式下沒轉換的字）、`log`（每一步做了什麼）。`errors` 不是空的話，指令以失敗結束。
 
 截圖照順序編號，例如 `05_d1_aming1_start.png`、`06_d1_aming1_reply.png`，可以一張張看畫面有沒有跑版。
 
@@ -87,7 +99,7 @@ node tools/playtest.mjs --model=claude --seed=3 --mode=good
 - 客人畫面：每位客人分別用 Claude、GPT 和「被叫錯名字的 DeepSeek」各開一次，檢查客人的訊息、需求清單、稱呼說明有沒有超出框。
 - 早上的日報：九個模型各玩 `--runs` 局（預設 12 局，共 540 個早上），檢查左右兩欄有沒有超出。
 
-有任何溢出就以失敗結束，並列出是哪位客人、哪一局哪一天。也可以加 `--url`、`--browser`。
+有任何溢出就以失敗結束，並列出是哪位客人、哪一局哪一天。也可以加 `--url`、`--browser`。加 `--lang=cn` 改排簡體版，同時檢查每個畫面有沒有沒轉成簡體的字；繁簡兩種都要跑。
 
 ## 公開網頁檢查：`node tools/pages_check.mjs`
 
@@ -95,16 +107,17 @@ node tools/playtest.mjs --model=claude --seed=3 --mode=good
 
 1. 直接從 git 取出已提交的檔案（預設 `HEAD`，可以用 `--ref` 指定），不讀工作資料夾裡沒提交的東西。
 2. 在本機開一個網站，放在 `/prompts-please/` 子路徑底下（和 GitHub Pages 的網址結構一樣；可以用 `--base` 改），檔名大小寫要完全一致才找得到。
-3. 用自動試玩跑三局（Claude 正常、DeepSeek 困難、GPT 故意踩陷阱），再用手機尺寸（844×390、觸控）開一次：檢查字型、頭像、開局、工具卡「點一下看說明、再點一下才使用」。
+3. 用自動試玩跑四局（Claude 正常、DeepSeek 困難、GPT 故意踩陷阱，以及 Seed 用簡體中文正常玩），再用手機尺寸（844×390、觸控）開一次：檢查字型、頭像、開局、工具卡「點一下看說明、再點一下才使用」。
 
 失敗的條件：遊戲要了不存在的檔案（沒提交、路徑或大小寫不對）、自動試玩有錯誤、手機檢查沒過。結果也會列出沒被用到的素材檔。
 
 網站架好之後，可以用 `node tools/pages_check.mjs --url=<網址>` 直接檢查線上版。
 
-公開或更新網頁版之前，建議依序跑：`npm test`、`node tools/layout_check.mjs`、`node tools/pages_check.mjs`。
+公開或更新網頁版之前，建議依序跑：`npm test`、`node tools/layout_check.mjs`、`node tools/layout_check.mjs --lang=cn`、`node tools/pages_check.mjs`。
 
 ## 手動測試
 
 - 網址加 `?seed=數字`：固定隨機結果，重現同一局。
 - 網址加 `?dev=1`：標題頁多一個「開發工具」，可以選模型、難度、種子，直接跳到任何一天的任何一位客人；遊戲中右上角的「開發」可以重來這位客人、跳過、直接下班、加白米飯、調信任。開發模式不存檔。
-- 改了任何中文內容之後，先跑 `npm run simplified` 重產「用簡體回覆」的字表，再跑 `npm test`。
+- 網址加 `?lang=cn` 或 `?lang=tw`：直接用簡體或繁體開。
+- 改了任何中文內容之後跑 `npm test`；新增的文字用 `npm run zh -- --show=<客人 id>` 看一次簡體版。
