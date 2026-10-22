@@ -48,6 +48,7 @@ DeepSeek 有時會被當成 Claude 或 GPT 的中轉站。這時客人說的話�
 - 遊戲用的轉換流程（不加 `data/zh.js`）和 opencc-js 的 `Converter({ from: 'twp', to: 'cn' })` 結果完全一樣；`src/vendor/opencc-js/t2cn.js` 和 `node_modules` 裡的 opencc-js 是同一個檔案。
 - `data/zh.js` 的每一條都有作用：拿掉那一條，至少有一段文字的結果會不同；沒有重複；簡體寫法經過繁轉簡不會再被改。
 - 繁體原文用繁中字型、轉換後的簡體用簡中字型，所有字都有字形（emoji 和「−」用系統字型，不算缺字）。
+- `style.css` 的 `content` 和 HTML 屬性（`title`、`alt`、`placeholder`、`aria-label`）裡沒有簡體會不同的中文（這些地方畫面轉換轉不到）。
 
 有錯誤就以失敗結束。`--show=<客人 id>`、`--show=<字詞>`、`--show=fixes` 只列出繁簡對照，不做檢查（用法見 [development.md](development.md) 的「簡體中文」）。
 

@@ -79,6 +79,12 @@ PP.ZH_FIX.forEach((fix, k) => {
   if (!uniq.some((s, i) => s.includes(from) && without(s) !== out[i])) errors.push('對照表這條沒有作用（遊戲裡沒有這個詞，或 OpenCC 已經這樣轉）：' + from + ' → ' + to);
 });
 
+const css = fs.readFileSync(path.join(ROOT, 'src/style.css'), 'utf8');
+for (const m of css.matchAll(/content:\s*(['"])(.*?)\1/g)) if (HAN.test(m[2]) && PP.zhCN(m[2]) !== m[2]) errors.push('style.css 的 content 有簡體會不同的中文（畫面轉換轉不到，改成頁面上的文字）：' + m[2]);
+for (const f of SOURCES) {
+  for (const m of fs.readFileSync(path.join(ROOT, f), 'utf8').matchAll(/\b(title|alt|placeholder|aria-label)="([^"]*)"/g)) if (HAN.test(m[2]) && PP.zhCN(m[2]) !== m[2]) errors.push(f + ' 的 ' + m[1] + ' 屬性有簡體會不同的中文（屬性不會被轉換）：' + m[2]);
+}
+
 const font = f => fontkit.openSync(path.join(ROOT, 'assets/fonts', f));
 const FONTS = {
   tw: [font('fusion-pixel-12px-proportional-tc.woff2'), font('fusion-pixel-12px-monospaced-tc.woff2')],

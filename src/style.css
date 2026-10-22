@@ -456,8 +456,10 @@ button.mini2 { padding: 0 5px; }
 .dev-acts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
 .e-row.fold { cursor: pointer; }
 .e-row.fold:hover { background: var(--paper-2); }
-.e-row .caret::after { content: '（點開）'; color: var(--paper-dim); margin-left: 4px; }
-.e-row.fold.open .caret::after { content: '（收合）'; }
+.e-row .caret { color: var(--paper-dim); margin-left: 4px; }
+.e-row .caret i { font-style: normal; }
+.e-row .caret i + i, .e-row.fold.open .caret i:first-child { display: none; }
+.e-row.fold.open .caret i + i { display: inline; }
 .e-more { display: none; margin: 2px 0 6px 10px; padding-left: 6px; border-left: 2px solid var(--paper-3); }
 .e-row.fold.open + .e-more { display: block; }
 .chip.rare { background: var(--orange); color: #fff; }

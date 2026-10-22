@@ -34,6 +34,7 @@
   - canvas 上的字要自己轉：文字用 `PP.L(文字)`，字型用 `'12px ' + PP.font()`（等寬字型 `PP.font(true)`）；畫好會快取的圖，快取鍵要帶 `PP.lang`。
   - 設了 `innerHTML` 之後馬上量尺寸的地方，先呼叫 `PP.zhFlush()` 讓轉換先完成（`frame()`、`overlay()` 已經呼叫了）。
   - OpenCC 的轉換不是冪等的：「檔案」轉成「文件」之後再轉一次，會被當成臺灣的「文件」變成「文档」。所以不要把 `PP.zhCN()` 轉過的字再放進畫面；一定要放的時候，包在 `class="zh-keep"` 裡（例如回覆單「用簡體回覆」的預覽），`zh-keep` 裡的字不會被轉換。語言按鈕的「繁體中文」也是靠它保持繁體。也不要從畫面讀回文字再寫回去（`textContent +=`、`cloneNode`）。
+  - 中文不要寫在 CSS 的 `content` 或 HTML 屬性（`title`、`alt`、`placeholder`、`aria-label`）裡，畫面轉換轉不到；要放在頁面文字裡（例如「點開／收合」是兩個 `<i>`，用 CSS 切換顯示哪一個）。
 - 字型：簡體用 Fusion Pixel 12px 簡中版（CSS 字型名 `FPS`、`FPMS`）。`html` 的 `lang` 是 `zh-Hans` 時，CSS 變數 `--fp`、`--fpm` 換成簡中版。兩版的字寬完全相同，版面不會變。
 - 語言存在 localStorage 的 `pp_lang`。第一次打開時看瀏覽器語言：zh-CN、zh-SG、zh-Hans 開簡體，其他開繁體。網址參數 `?lang=cn`、`?lang=tw` 可以直接指定。
 - 新增的每一段文字都要有繁簡兩種版本，步驟：

@@ -42,6 +42,7 @@ PP.UI = (() => {
   const KIND = { file: '檔案', grep: '找字結果', web: '網頁', term: '指令結果', diff: '修改', write: '寫好的', ask: '使用者回覆', recall: '印象', summary: '摘要', attach: '使用者傳來', image: '生成的圖' };
   const PICK_TITLES = { read: '要打開哪個檔案？', grep: '要找什麼字？', web: '搜尋結果：挑一個打開', edit: '要改哪裡、寫什麼？', draw: '要畫哪一張？', recall: '要憑印象回答哪一題？', todo: '要釘住哪份文件？' };
   const ENDING_TAG = { good: '好結局', bad: '壞結局', normal: '普通結局' };
+  const CARET = '<span class="caret"><i>（點開）</i><i>（收合）</i></span>';
   const SUBTITLES = ['請出示提示詞', 'Papers, Please?', '請出示白米飯', '請出示提示詞'];
   const DIFF = { easy: '簡單', hard: '困難' };
   const DUMB = 'OpenAI 又把大家的使用額度重置了，用量暴增。你今天有點降智：憑印象的把握打七折，寫東西偶爾會漏掉細節。';
@@ -893,7 +894,7 @@ PP.UI = (() => {
   }
 
   function foldRow(e, who, said, extra) {
-    return '<div class="e-row fold" data-act="fold"><span class="e-tag e-' + e.type + '">' + ENDING_TAG[e.type] + '</span>' + esc(e.title) + '<span class="dim">（' + esc(who) + (extra || '') + '）</span><span class="caret"></span></div>'
+    return '<div class="e-row fold" data-act="fold"><span class="e-tag e-' + e.type + '">' + ENDING_TAG[e.type] + '</span>' + esc(e.title) + '<span class="dim">（' + esc(who) + (extra || '') + '）</span>' + CARET + '</div>'
       + '<div class="e-more">' + (said ? '<div>' + esc(who) + '當時說：「' + esc(said) + '」</div>' : '') + '<div class="e-lines">' + e.lines.map(esc).join('<br>') + '</div></div>';
   }
 
@@ -1094,7 +1095,7 @@ PP.UI = (() => {
 
   U.updates = function () {
     const list = PP.updates || [];
-    const body = list.map((u, i) => '<div class="e-row fold' + (i === 0 ? ' open' : '') + '" data-act="fold"><b>' + esc(u.version) + '</b><span class="dim">（' + esc(u.date) + '）</span><span class="caret"></span></div>'
+    const body = list.map((u, i) => '<div class="e-row fold' + (i === 0 ? ' open' : '') + '" data-act="fold"><b>' + esc(u.version) + '</b><span class="dim">（' + esc(u.date) + '）</span>' + CARET + '</div>'
       + '<div class="e-more">' + u.groups.map(g => '<div class="h">' + esc(g.title) + '</div>' + g.items.map(x => '<p>・' + esc(x) + '</p>').join('')).join('') + '</div>').join('');
     frame('<div class="scr paper-scr ach-scr"><div class="sheet endsheet" style="width:700px"><div class="e-scroll"><h2>更新紀錄</h2>'
       + (body || '<p class="dim">還沒有更新紀錄。</p>')
