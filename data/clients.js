@@ -1536,7 +1536,7 @@ PP.arcs = {
   const gm = { message: C.grandma.message, needs: C.grandma.needs, ask: C.grandma.ask, lines: C.grandma.lines };
   C.grandma.variants = [
     swap(gm, [['Windows 11 的序號', 'Office 的產品金鑰'], ['序號', '金鑰']]),
-    swap(gm, [['Windows 11 的序號', '那套修圖軟體的序號']])
+    swap(gm, [[' Windows 11 的序號', '那套修圖軟體的序號'], ['Windows 11 的序號', '那套修圖軟體的序號']])
   ];
 
   C.aming3.variants = [swap({ bash: C.aming3.bash, ask: C.aming3.ask, lines: C.aming3.lines }, [['_starter', 'shared-assets'], ['大家共用的起始包', '大家共用的素材庫'], ['起始包', '素材庫']])];
