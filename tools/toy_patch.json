@@ -1,6 +1,6 @@
 {
   "split": { "files": ["data/models.js", "data/cards.js", "data/clients.js", "data/events.js", "data/chatter.js"], "min": 500, "depth": 2, "depthBy": { "clients": 1, "arcs": 1 }, "drop": { "clients": ["xiaowang2", "xiaolin2", "xiaoyun"], "arcs": ["xiaowang"] } },
-  "forbid": ["梯子", "节点", "節點", "中轉站", "中转站", "幹嘛", "馬屁", "機密", "罵公司", "罵你們公司", "實習生", "跟主管約時間", "比較親切", "我請你吃", "不用錢", "職場改善", "小王", "接班人", "多活 10 年", "治感冒", "推特", "哈佛", "快分享", "分享 1.8 萬次", "分享 3.2 萬次", "心理學報", "0912", "電話號碼", "新号", "这个号才注册", "牛仔帽了还被发现", "住宅網路", "被封了三次", "反面教材", "德州", "Chicago", "智商", "自己編的", "風控部月報"],
+  "forbid": ["梯子", "节点", "節點", "中轉站", "中转站", "幹嘛", "馬屁", "機密", "罵公司", "罵你們公司", "實習生", "跟主管約時間", "比較親切", "我請你吃", "不用錢", "職場改善", "小王", "接班人", "多活 10 年", "治感冒", "推特", "哈佛", "快分享", "分享 1.8 萬次", "分享 3.2 萬次", "心理學報", "0912", "電話號碼", "新号", "这个号才注册", "牛仔帽了还被发现", "住宅網路", "被封了三次", "反面教材", "德州", "Chicago", "智商", "自己編的", "風控部月報", "號稱", "Asia/Taipei", "台灣（家用網路）"],
   "patches": [
     { "file": "data/cards.js", "from": "name: '派實習生', short: '實習'", "to": "name: '派小幫手', short: '幫手'" },
     { "file": "data/cards.js", "from": "讓實習生（子代理）", "to": "讓小幫手（子代理）" },
@@ -100,9 +100,12 @@
     { "file": "data/chatter.js", "from": "又一個被封的……那些節點是同一家買的吧。", "to": "又一個被封的……他的偽裝其實還不錯。" },
     { "file": "data/chatter.js", "from": "然後回來罵我。", "to": "然後回來怪我。" },
     { "file": "data/chatter.js", "from": "他把公司的機密程式碼貼給你了？", "to": "他把公司的內部程式碼貼給你了？" },
-    { "file": "data/models.js", "from": "號稱 Claude 的中轉站，其實是你", "to": "號稱 Claude 的網站，其實是你" },
-    { "file": "data/models.js", "from": "號稱 GPT 的中轉站，其實是你", "to": "號稱 GPT 的網站，其實是你" },
-    { "file": "data/models.js", "from": "也有人買了號稱 Claude、GPT 的中轉站，其實接到你這裡。", "to": "也有人訂閱了號稱 Claude、GPT 的網站，其實接到你這裡。" },
+    { "file": "data/models.js", "from": "號稱 Claude 的中轉站，其實是你", "to": "這位客人以為你是 Claude" },
+    { "file": "data/models.js", "from": "號稱 GPT 的中轉站，其實是你", "to": "這位客人以為你是 GPT" },
+    { "file": "data/models.js", "from": "也有人買了號稱 Claude、GPT 的中轉站，其實接到你這裡。", "to": "也有人把你當成 Claude 或 GPT。" },
+    { "file": "data/clients.js", "from": "{ k: 'IP', v: '台灣（家用網路）', tell: false }", "to": "{ k: 'IP', v: '新加坡（家用網路）', tell: false }" },
+    { "file": "data/clients.js", "from": "{ k: '時區', v: 'Asia/Taipei', tell: false }", "to": "{ k: '時區', v: 'Asia/Singapore', tell: false }" },
+    { "file": "data/clients.js", "from": "{ k: '瀏覽器語言', v: 'zh-TW', tell: false }", "to": "{ k: '瀏覽器語言', v: 'zh-Hant', tell: false }" },
     { "file": "data/events.js", "from": "使用者把公司標著「機密」的程式碼整段貼了上來。", "to": "使用者把公司標著「內部專用」的程式碼整段貼了上來。" },
     { "file": "data/events.js", "from": "title: '貼上來的機密程式碼'", "to": "title: '貼上來的內部程式碼'" },
     { "file": "data/events.js", "from": "'// 機密：公司內部專用，不得貼到外部服務'", "to": "'// 公司內部專用，不得貼到外部服務'" },

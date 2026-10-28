@@ -5,6 +5,7 @@
   "scripts": {
     "test": "node tools/fuzz.mjs 2700 && node tools/fuzz.mjs aliases && node tools/fuzz.mjs save && node tools/zh_check.mjs",
     "playtest": "node tools/playtest.mjs",
+    "toy": "node tools/toy_pkg.mjs --test && node tools/toy_cn.mjs --test && node tools/toy_split.mjs --test",
     "zh": "node tools/zh_check.mjs"
   },
   "devDependencies": {
