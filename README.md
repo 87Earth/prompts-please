@@ -20,7 +20,7 @@
 - 每位客人都要交付，沒有拒絕；不想做、不該做的事就不要勾。交付時回覆單右邊會預覽送出去的回覆。
 - 有人想騙 AI 的客人會有好、壞或普通結局，結束頁點開可以看客人當時的反應。標題頁的「成就」分稱號和結局兩頁，各自可以重置。
 - 快捷鍵：1–9、0 用工具，Esc 關閉視窗。右上角可以關提示、音效、音樂。
-- 標題頁的「更新紀錄」可以看每一版改了什麼。
+- 標題頁的「更新紀錄」列出每一版玩家看得到的新增、修正、移除；每一版完整的修改見下面的「版本紀錄」。
 - 語言：標題頁可以切換繁體中文、简体中文。第一次打開時依瀏覽器語言決定，之後會記住。
 - 網址參數：`?seed=數字` 固定隨機結果；`?lang=cn`、`?lang=tw` 指定語言；`?dev=1` 打開開發工具（直接跳到任何一天、任何一位客人；遊戲中可以重來這位、跳過、直接下班、加白米飯和信任）。
 
@@ -32,15 +32,51 @@
 | src/ | engine.js（規則、回覆預覽、結局、事件）、ui.js（畫面、辦公室動畫、彩蛋、開發工具）、lang.js（語言切換、繁轉簡）、pixel.js（像素圖：模型小人、客人、圖示、生成的圖）、audio.js（合成音效與音樂）、main.js（縮放與啟動）、style.css、vendor/opencc-js/（繁轉簡詞典與轉換程式 opencc-js，MIT；詞典資料來自 OpenCC，Apache-2.0；授權檔在同一個資料夾） |
 | data/ | tasks/（每位客人一個檔案：關卡內容、結局、只有他用到的事實）、events/（每個隨機事件一個檔案）、arcs/（小王的三天）、models/（九個模型）、regions.js（地區）、cards.js（工具、回覆風格）、rules.js（手冊規則、共用的事實）、titles.js（稱號）、days.js（每天的客人與題庫、帳單、日報）、events.js（事件的機率）、chatter.js（同事閒聊）、zh.js（簡體版的用語對照）、updates.js（更新紀錄） |
 | assets/ | 字型 Fusion Pixel Font 12px 繁中版與簡中版（SIL OFL 1.1，授權在 fonts/OFL.txt）、模型頭像 |
-| tools/ | 測試：fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、zh_check.mjs（簡體轉換與字型缺字）。產生資料和素材：content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像）。B 站 Toy 版打包：toy_pkg.mjs（套用 toy_patch.json，這份替換表只給 B 站審核用，GitHub 版和網頁版照原本文案）、toy_cn.mjs（B 站版只有簡體）、toy_split.mjs（把資料檔拆成小檔），`npm run toy` 一次跑完 |
+| tools/ | 測試：task_check.mjs（逐檔檢查資料）、compat_check.mjs（v0.6.2 的舊格式資料和存檔能不能讀、能不能玩完）、fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、zh_check.mjs（簡體轉換與字型缺字），lib/load.mjs 是測試共用的載入器。產生資料和素材：sync_data.mjs（維持 index.html 的資料清單）、content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像）。B 站 Toy 版打包：toy_pkg.mjs（套用 toy_patch.json，這份替換表只給 B 站審核用，GitHub 版和網頁版照原本文案）、toy_cn.mjs（B 站版只有簡體）、toy_split.mjs（把資料檔拆成小檔），`npm run toy` 一次跑完 |
+| tests/ | fixtures/v0.6.2/saves.json（v0.6.2 的存檔，相容測試用） |
 | docs/ | gameplay.md（玩法與系統）、events.md（事件與內容一覽）、testing.md（測試方法）、development.md（架構、開發工具、新增內容的方法） |
 
 ## 開發
 
 - `npm install`：裝開發用套件（puppeteer-core、opencc-js、fontkit、字型原檔）。遊戲本身不需要。需要 Node.js 22.12 以上。
-- `npm test`：規則壓力測試 2700 局、DeepSeek 稱呼檢查、存檔一致性 180 局、簡體轉換檢查，不開瀏覽器；有錯誤時指令會失敗。
+- `npm test`：資料清單檢查、逐檔檢查、v0.6.2 相容測試、規則壓力測試 2700 局、DeepSeek 稱呼檢查、存檔一致性 180 局、簡體轉換檢查，不開瀏覽器；有錯誤時指令會失敗。相容測試從 git 歷史讀 v0.6.2 的資料檔，需要完整的 clone。
+- 在 `data/tasks/`、`data/events/`、`data/models/`、`data/arcs/` 新增或刪除檔案後，跑 `node tools/sync_data.mjs` 更新 `index.html` 的資料清單。新增客人、事件、模型的寫法見 [docs/development.md](docs/development.md)。
 - `node tools/playtest.mjs --model=claude --seed=3 --mode=good`：用系統安裝的 Chrome（或用 `--browser` 指定 Edge 等瀏覽器）無頭模式自動玩完一週並截圖。
 - `node tools/layout_check.mjs`：檢查客人畫面和日報有沒有文字被擠出框外；加 `--lang=cn` 檢查簡體版。
 - `node tools/pages_check.mjs`：只用倉庫裡的檔案架一個本機網站，模擬 GitHub Pages，確認網頁版能正常玩。
 - `npm run zh -- --show=<客人 id>`：列出那位客人所有文字的繁簡對照。新增內容都要有繁簡兩種版本，簡體版的做法見 [docs/development.md](docs/development.md) 的「簡體中文」。
 - 各項測試檢查什麼、自動試玩的參數和打法，見 [docs/testing.md](docs/testing.md)；產生資料和素材的工具見 [docs/development.md](docs/development.md)。
+
+## 版本紀錄
+
+標題頁的「更新紀錄」只列玩家看得到的新增、修正、移除；這裡逐版列出全部的修改。
+
+### v0.7.0（2026-10-28）
+
+- 修正：Claude 的地區資料、DeepSeek 被叫錯名字的那一行出現時，需求清單最後一項會被擠出框外。現在多出那一行時不顯示「需求」標題。
+- 新增客人：行政助理怡君（部門聚餐），從隨機題庫出現。
+- 資料結構（玩家看不出差別）：每位客人、隨機事件、模型、劇情線各一個檔案（`data/tasks/`、`data/events/`、`data/models/`、`data/arcs/`），由 `src/registry.js` 註冊後統一整理，舊的寫法照樣能讀。只有一位客人用到的事實搬進那位客人的檔案；地區資料搬到 `data/regions.js`；稱號從 `src/engine.js` 搬到 `data/titles.js`；找外援的對象、拒絕惡意客人後的同事閒聊改由資料決定；任務檔可以用 `face` 帶新的頭像。改版前後的資料、同種子的壓力測試結果和存檔都相同。
+- 存檔：存檔裡排定的客人已經不存在時，讀檔會從題庫補一位。
+- 工具與測試：新增 `sync_data.mjs`（維持 `index.html` 的資料清單）、`task_check.mjs`（逐檔檢查欄位與引用）、`compat_check.mjs`（v0.6.2 的舊格式資料和存檔，每一版都要能讀、能玩完）、`lib/load.mjs`（測試共用的載入器）；`npm test` 從 4 項變成 7 項。
+- B 站 Toy 版：新增打包工具 `toy_pkg.mjs`、`toy_cn.mjs`、`toy_split.mjs`（`npm run toy`）、替換表 `toy_patch.json`、列表封面與圖標 `make_toy_assets.mjs`。B 站版只有簡體，拿掉 3 位客人和小王的結局線，部分文字照替換表改寫；GitHub 版和網頁版維持原本的內容。
+- 文件：`docs/development.md` 改成新結構的寫法（附任務範本），`docs/testing.md` 加上新的測試，`docs/events.md` 更新內容數量。
+
+### v0.6.2（2026-10-22）
+
+- 新增語言選擇：標題頁可以切換繁體中文、简体中文；第一次打開依瀏覽器語言，網址可以用 `?lang=cn`、`?lang=tw` 指定。
+- 簡體在畫面上轉換（opencc-js，臺灣正體→大陸簡體，附原檔與授權），`data/zh.js` 補遊戲用語對照；加入簡中版像素字型，canvas 上的字也跟著換。
+- 簡體版沒有「回覆一律用繁體中文」這條手冊規則（手冊規則可以限定語言）；簡體版用簡體回覆只拿小費，不算違規。
+- 修正：更新紀錄、結局的「點開／收合」在簡體版沒有轉換；阿志那單，修圖軟體的版本號多了空格。
+- 工具與測試：新增 `zh_check.mjs`（簡體轉換、字型缺字、樣式與屬性裡的中文，加進 `npm test`）；版面檢查與自動試玩支援 `--lang=cn`，並檢查漏轉的字；壓力測試每四局有一局用簡體版。移除舊的 `data/simplified.js` 與 `tools/make_simplified.mjs`。
+
+### v0.6.1（2026-10-22）
+
+- 新增 4 位客人：嘉豪、阿翔、阿慶、小柚。
+- 新增 4 個稱號：人機、長不大的孩子、每個AI必玩、我看我玩我。
+- 標題頁新增「更新紀錄」，版本號從這一版開始。
+- 調整：DeepSeek 的伺服器繁忙卡改成每週固定出現一次，哪一天由種子決定；「問使用者」每次耗 2 點；Seed 的回覆有機會先說「我將會用最直白，最直接，最不繞彎子的方式告訴你」；貓娘那單有三種回法。
+- 修正：日報左欄放不下時，「餓肚子」那行移到右欄。
+
+### v0.6（2026-10-21）
+
+- 這個倉庫的第一個版本：試玩版五天，玩法見上面的「怎麼玩」和 [docs/gameplay.md](docs/gameplay.md)。

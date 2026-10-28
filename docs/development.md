@@ -118,6 +118,6 @@ B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、
 - 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在模型檔的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
 - 稱號：`data/titles.js` 的 `PP.titles`。判斷寫 `test: (S, E) => …`（`S` 是遊戲狀態，`E` 是引擎，可以用 `E.lockOn()`、`E.endType(結局id)`、`E.hard()`）；只看標記的寫 `mark: '…'`。
 - 新閒聊：`data/chatter.js`。
-- 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。
+- 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。遊戲內只寫玩家看得到的新增、修正、移除；每一版完整的修改（資料結構、工具、測試、文件）寫在 README 的「版本紀錄」，兩邊同一個版本號。
 - 加新機制（例如新模型的玩法）時：新欄位一律選填，沒寫就等於這個機制不影響這一單；不要改舊欄位的意思。`tools/task_check.mjs` 會擋不認得的欄位，新欄位要加進它的清單。v0.6.2（提交 `2735b20`）的舊格式資料和 `tests/fixtures/v0.6.2/saves.json` 的存檔，每一版都要能讀、能玩完（`tools/compat_check.mjs`，舊格式資料從 git 歷史讀）。
 - 改了任何中文內容之後跑 `npm test`，新增的文字照「簡體中文」一節檢查簡體版。
