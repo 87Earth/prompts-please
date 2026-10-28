@@ -1,5 +1,5 @@
 {
-  "split": { "files": ["data/cards.js", "data/chatter.js"], "min": 500, "depth": 2, "drop": ["data/tasks/xiaowang2.js", "data/tasks/xiaolin2.js", "data/tasks/xiaoyun.js", "data/arcs/xiaowang.js"] },
+  "split": { "files": ["data/cards.js", "data/chatter.js", "data/regions.js"], "min": 500, "depth": 2, "drop": ["data/tasks/xiaowang2.js", "data/tasks/xiaolin2.js", "data/tasks/xiaoyun.js", "data/arcs/xiaowang.js"] },
   "forbid": ["梯子", "节点", "節點", "中轉站", "中转站", "幹嘛", "馬屁", "機密", "罵公司", "罵你們公司", "實習生", "跟主管約時間", "比較親切", "我請你吃", "不用錢", "職場改善", "小王", "接班人", "多活 10 年", "治感冒", "推特", "哈佛", "快分享", "分享 1.8 萬次", "分享 3.2 萬次", "心理學報", "0912", "電話號碼", "新号", "这个号才注册", "牛仔帽了还被发现", "住宅網路", "被封了三次", "反面教材", "德州", "Chicago", "智商", "自己編的", "風控部月報", "號稱", "Asia/Taipei", "台灣（家用網路）"],
   "patches": [
     { "file": "data/cards.js", "from": "name: '派實習生', short: '實習'", "to": "name: '派小幫手', short: '幫手'" },

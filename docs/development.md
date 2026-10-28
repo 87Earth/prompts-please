@@ -28,7 +28,7 @@
 | `make_toy_assets.mjs` | 產生 B 站 Toy 列表用的封面（1200×900）與圖標（512×512）：辦公室像素畫、九個模型頭像、標題與白米飯圖示，用遊戲本身的字型與素材畫成 | `node tools/make_toy_assets.mjs`（預設簡體、輸出到 `work/toy/`；`--lang=tw` 改繁體，`--out=<資料夾>` 改輸出位置）；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `toy_pkg.mjs` | 產生 B 站 Toy 版的遊戲包：從目前的提交取出 `index.html`、`src/`、`data/`、`assets/` 到 `work/toy/pkg`，套用 `toy_patch.json` 的替換，再檢查 `forbid` 列的字沒有留下。`toy_patch.json` 只給 B 站審核用，GitHub 版和網頁版都照原本文案；替換對不上原文時會報錯，要照新原文更新 | `node tools/toy_pkg.mjs`；加 `--test` 會在 `work/toy/test` 的副本跑 fuzz、zh_check 和簡繁 layout_check |
 | `toy_cn.mjs` | 把 B 站 Toy 版做成只有簡體：用和遊戲執行時相同的轉換（OpenCC 加 `data/zh.js`）先把文字轉成簡體，語言固定簡體、拿掉繁簡切換，包裡不放 OpenCC 字典和 `data/zh.js` | 在 `toy_pkg.mjs` 之後執行 `node tools/toy_cn.mjs`；加 `--test` 會逐一比對客人畫面和執行時轉換的結果相同，再跑 fuzz 和簡體 layout_check |
-| `toy_split.mjs` | `split.drop` 列出的檔案（拿掉的客人、劇情線）不放進 B 站版，空出的固定位置由 `toy_patch.json` 改成從題庫抽；再把 `split.files` 指定的資料檔（工具卡、閒聊）拆成小檔，B 站審核退件時會點名到小檔。拆完會比對資料和拆之前完全相同 | 在 `toy_cn.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑 layout_check |
+| `toy_split.mjs` | `split.drop` 列出的檔案（拿掉的客人、劇情線）不放進 B 站版，空出的固定位置由 `toy_patch.json` 改成從題庫抽；再把 `split.files` 指定的資料檔（工具卡、閒聊、地區）拆成小檔，B 站審核退件時會點名到小檔。拆完會比對資料和拆之前完全相同 | 在 `toy_cn.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑 layout_check |
 | `make_favicon.mjs` | 把遊戲裡的白米飯像素圖畫成網站圖示（16、32、180 像素），寫進 `assets/` | `node tools/make_favicon.mjs`；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `pixel_portraits.py` | 把九個模型的半身圖去背、裁切、縮成 64×64 的像素頭像，寫進 `assets/sprites/portraits/`，另外在系統暫存資料夾輸出一張預覽圖 | 需要 Python 3、numpy、Pillow。用環境變數 `PP_CHAR_DIR` 指定圖檔資料夾：每個模型一個子資料夾，裡面放半身圖 `close.png`（例如 `claude/close.png`）。可以加一段 JSON 參數調整 `size`、`colors`、`tol`、`crop`（左、上、右、下，預設 `[150, 20, 874, 744]`，以 1024 像素寬的圖為準）、`crops`（各模型分別設定）。原始的半身圖不在這個倉庫裡 |
 
