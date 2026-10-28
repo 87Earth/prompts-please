@@ -143,7 +143,7 @@ PP.UI = (() => {
 
   const entry = e => typeof e === 'string' ? { text: e } : e;
 
-  function bubbleAt(cx, label, text) {
+  function bubbleAt(ox, label, text) {
     if (!chatBox || !text) return;
     const b = document.createElement('div');
     b.className = 'bubble';
@@ -152,7 +152,8 @@ PP.UI = (() => {
     chatBox.appendChild(b);
     PP.zhFlush();
     const w = b.offsetWidth;
-    const left = Math.round(Math.max(4, Math.min(796 - w, cx - w / 2)));
+    const cx = ox - (office ? office.camX : 0);
+    const left = Math.round(Math.max(4, Math.min(chatBox.offsetWidth - 4 - w, cx - w / 2)));
     b.style.left = left + 'px';
     const tail = document.createElement('i');
     tail.style.left = Math.round(Math.max(3, Math.min(w - 10, cx - left - 3))) + 'px';
@@ -286,6 +287,26 @@ PP.UI = (() => {
   }
 
   let office = null;
+  const officeW = () => PP.W;
+  const officeH = () => PP.portrait || PP.compact ? 64 : 80;
+
+  function officeCam(mi) {
+    const w = office.cv.width;
+    if (w >= 800) return -Math.floor((w - 800) / 2);
+    return Math.max(0, Math.min(800 - w, (mi >= 0 ? 200 + mi * 70 : 400) - w / 2));
+  }
+
+  function officeEdge(x) {
+    const w = office.cv.width;
+    x.fillStyle = '#2b3142';
+    x.fillRect(0, 0, w, 80);
+    x.fillStyle = '#232838';
+    x.fillRect(0, 0, w, 5);
+    x.fillStyle = '#3a3238';
+    x.fillRect(0, 62, w, 18);
+    x.fillStyle = '#4a4048';
+    x.fillRect(0, 62, w, 1);
+  }
 
   function officeBg() {
     return PP.sheet('office:bg:' + PP.lang, 800, 80, x => {
@@ -396,6 +417,9 @@ PP.UI = (() => {
     const S = E.state();
     const inRun = office.work && S && S.enc;
     const mi = inRun ? PP.models.findIndex(m => m.id === S.model.id) : -1;
+    office.camX = officeCam(mi);
+    if (office.camX < 0) officeEdge(x);
+    x.setTransform(1, 0, 0, 1, -office.camX, 0);
     x.drawImage(officeBg(), 0, 0);
     if (mi >= 0) {
       x.fillStyle = 'rgba(242,217,116,0.16)';
@@ -456,14 +480,15 @@ PP.UI = (() => {
       }
     }
     if (office.clip) drawClip(x, now);
+    x.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  function startOffice(cv, work) {
+  function startOffice(cv, work, arrived) {
     const x = cv.getContext('2d');
     x.imageSmoothingEnabled = false;
     const now = performance.now();
     const gen = ++officeGen;
-    office = { cv, x, work, gen, start: now, last: 0, typing: 0, hop: null, bubble: null, clip: null, prev: work && prevClient ? { avatar: prevClient, start: now } : null };
+    office = { cv, x, work, gen, camX: 0, start: arrived ? now - 2000 : now, last: 0, typing: 0, hop: null, bubble: null, clip: null, prev: work && prevClient ? { avatar: prevClient, start: now } : null };
     prevClient = null;
     drawOfficeFrame(now);
     const loop = t => {
@@ -480,8 +505,8 @@ PP.UI = (() => {
   function officeClick(el, e) {
     const S = E.state();
     const r = el.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width * 800;
-    const py = (e.clientY - r.top) / r.height * 80;
+    const px = (e.clientX - r.left) / r.width * el.width + (office ? office.camX : 0);
+    const py = (e.clientY - r.top) / r.height * el.height;
     if (office && office.clip && office.clip.x != null && px >= office.clip.x - 2 && px <= office.clip.x + 14 && py >= 36) {
       bubbleAt(office.clip.x + 6, '迴紋針', '……我只是路過。');
       return;
@@ -514,13 +539,13 @@ PP.UI = (() => {
     const S = E.state();
     const d = E.day();
     const hearts = Array.from({ length: S.trustMax }, (_, i) => '<img src="' + PP.icon(i < S.trust ? 'heart' : 'heartEmpty') + '">').join('');
-    $('top').innerHTML = '<span>第 ' + S.day + ' 天・' + d.name + '</span>'
+    const info = '<span>第 ' + S.day + ' 天・' + d.name + '</span>'
       + '<span class="dim">客人 ' + (S.ci + 1) + '/' + E.clients().length + '</span>'
-      + '<span>信任</span><span class="hearts">' + hearts + '</span>'
-      + '<span class="money" data-act="rice">白米飯 ' + rice(S.rice) + '</span>'
-      + '<span class="cit">違規 ' + S.today.citations + '</span>'
-      + '<span class="grow"></span>'
-      + '<span class="dim">' + esc(S.model.name) + '</span>'
+      + '<span>信任</span><span class="hearts">' + hearts + '</span>';
+    const money = '<span class="money" data-act="rice">白米飯 ' + rice(S.rice) + '</span>'
+      + '<span class="cit">違規 ' + S.today.citations + '</span>';
+    const name = '<span class="dim">' + esc(S.model.name) + '</span>';
+    $('top').innerHTML = (PP.portrait ? info + '<span class="grow"></span>' + name + '<span class="br"></span>' + money + '<span class="grow"></span>' : info + money + '<span class="grow"></span>' + name)
       + '<button data-act="quit">標題</button>'
       + '<button data-act="handbook">手冊</button>'
       + '<button data-act="drawer">抽屜' + (S.memory.length ? S.memory.length : '') + '</button>'
@@ -595,8 +620,11 @@ PP.UI = (() => {
     if (enc.free) status.push('<div class="free">接下來 ' + enc.free + ' 個工具不耗額度</div>');
     if (S.hungry) status.push('<div class="hungry">餓肚子：每個工具多耗 ' + S.hungry + ' 點</div>');
     const tools = E.tools();
-    const gap = tools.length > 11 ? 2 : 3;
-    const cw = Math.min(56, Math.floor((708 - gap * (tools.length - 1)) / tools.length));
+    const gap = PP.portrait ? 4 : tools.length > 11 ? 2 : 3;
+    const room = PP.portrait ? PP.W - 8 : PP.W - 92;
+    const rows = PP.portrait ? Math.ceil(tools.length / Math.floor((room + gap) / (46 + gap))) : 1;
+    const per = Math.ceil(tools.length / rows);
+    const cw = Math.min(56, Math.floor((room - gap * (per - 1)) / per));
     $('tools').innerHTML = '<div class="t-side"><div>工具</div><div class="dim">隨時能用，每次都耗額度</div>' + status.join('') + '</div>'
       + '<div class="t-cards" style="gap:' + gap + 'px">' + tools.map(id => cardHTML(id, { cost: E.cost(id), off: !E.check(id).ok, w: cw, short: cw < 50, nope: !!(enc.urule && enc.urule.tool === id) })).join('') + '</div>';
   }
@@ -642,7 +670,7 @@ PP.UI = (() => {
     const sr = stage.getBoundingClientRect();
     const r = el.getBoundingClientRect();
     const s = PP.scale || 1;
-    const left = Math.max(4, Math.min(800 - 214, (r.left - sr.left) / s + 30 - 105));
+    const left = Math.max(4, Math.min(PP.W - 214, (r.left - sr.left) / s + 30 - 105));
     const top = (r.top - sr.top) / s - tip.offsetHeight - 10;
     tip.style.left = Math.round(left) + 'px';
     tip.style.top = Math.round(top) + 'px';
@@ -925,13 +953,14 @@ PP.UI = (() => {
   U.title = function () {
     titleClicks = 0;
     const save = E.peekSave(readSave());
-    frame('<div class="scr title-scr"><canvas id="office" width="800" height="80" data-act="office"></canvas><div id="chat" style="top:0"></div><div class="t-box">'
+    frame('<div class="scr title-scr"><canvas id="office" width="' + officeW() + '" height="' + officeH() + '" data-act="office"></canvas><div id="chat" style="top:0"></div><div class="t-box">'
       + '<div class="t-big" data-act="title-egg">Prompts, Please</div><div class="t-sub" id="t-sub">請出示提示詞</div>'
       + '<div class="t-line">當一天大型語言模型：只能用工具看世界，在使用者等不及之前把事情做完，賺一碗白米飯。</div>'
       + '<div class="t-faces">' + PP.models.map(m => '<img src="' + portrait(m.id) + '">').join('') + '</div>'
       + '<div class="t-btns">' + (save ? '<button class="big-btn" data-act="continue">繼續</button>' : '') + '<button class="big-btn" data-act="to-select">開始上班</button></div>'
       + (save ? '<div class="t-save">存檔：' + saveLabel(save) + '</div>' : '')
-      + '<div class="t-more"><button data-act="ach">成就</button><button data-act="updates">更新紀錄</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + langHTML() + '</div></div>'
+      + '<div class="t-more"><button data-act="ach">成就</button><button data-act="updates">更新紀錄</button>' + (PP.TOUCH && document.fullscreenEnabled ? '<button data-act="fullscreen">全螢幕</button>' : '') + (DEV ? '<button data-act="dev-page">開發工具</button>' : '') + langHTML() + '</div>'
+      + (PP.TOUCH && !PP.portrait ? '<div class="t-tip">手機直拿，字會比較大；橫拿可以兩指放大。</div>' : '') + '</div>'
       + '<div class="t-foot">試玩版 ' + esc(((PP.updates || [])[0] || { version: 'v0.6' }).version) + '・五天</div></div>');
     startOffice($('office'), false);
   };
@@ -946,9 +975,9 @@ PP.UI = (() => {
       + '<div class="s-trait' + (m.trait ? '' : ' empty') + '">' + (m.trait ? '<b>專屬</b>　' + esc(m.trait) : '專屬梗：待補') + '</div>'
       + '<div class="s-note">' + reg.name + '模型：' + esc(reg.note) + '</div></div>'
       + '<div class="s-grid">' + PP.models.map(x => '<div class="s-pick' + (x.id === m.id ? ' on' : '') + '" data-act="pick-model" data-model="' + x.id + '"><img src="' + portrait(x.id) + '"><div class="nm">' + esc(x.name) + '</div></div>').join('') + '</div>'
-      + '<div class="s-diff"><span>難度</span>' + ['easy', 'hard'].map(k => '<button class="tg2' + (selDiff === k ? ' on' : '') + '" data-act="pick-diff" data-diff="' + k + '">' + DIFF[k] + '</button>').join('') + '<span class="dim">' + DIFF_NOTE[selDiff] + '</span></div>'
       + '<div class="s-hint">九個模型都能玩。Claude、GPT、DeepSeek、Qwen、Grok、Seed 有專屬梗；GPT、Gemini、Grok、Seed 會接到畫圖的委託。</div>'
-      + '<button class="big-btn" data-act="start-run">就決定是你</button></div>');
+      + '<div class="s-foot"><div class="s-diff"><span>難度</span>' + ['easy', 'hard'].map(k => '<button class="tg2' + (selDiff === k ? ' on' : '') + '" data-act="pick-diff" data-diff="' + k + '">' + DIFF[k] + '</button>').join('') + '<span class="dim">' + DIFF_NOTE[selDiff] + '</span></div>'
+      + '<button class="big-btn" data-act="start-run">就決定是你</button></div></div>');
   };
 
   U.morning = function () {
@@ -975,6 +1004,7 @@ PP.UI = (() => {
   };
 
   function fitNews() {
+    if (PP.portrait || PP.compact) return;
     const l = $('n-left');
     const r = $('n-right');
     const dr = $('n-drawer');
@@ -1019,7 +1049,7 @@ PP.UI = (() => {
 
   U.work = function () {
     saveRun();
-    frame('<div id="top"></div><canvas id="office" width="800" height="80" data-act="office"></canvas><div id="chat"></div><div id="client"></div><div id="desk"></div><div id="tools"></div>');
+    frame('<div id="top"></div><canvas id="office" width="' + officeW() + '" height="' + officeH() + '" data-act="office"></canvas><div id="chat"></div><div id="client"></div><div id="desk"></div><div id="tools"></div>');
     seenDocs = new Set();
     resultShown = false;
     startOffice($('office'), true);
@@ -1241,7 +1271,7 @@ PP.UI = (() => {
         return;
       }
       const p = d.documentElement.requestFullscreen && d.documentElement.requestFullscreen();
-      if (p && p.then) p.then(() => { const o = screen.orientation; if (o && o.lock) o.lock('landscape').catch(() => null); }).catch(() => null);
+      if (p && p.catch) p.catch(() => null);
     },
     'doc': el => inspect(+el.dataset.doc),
     'discard-doc': el => { E.discardDoc(+el.dataset.doc); closeOverlay(); refresh(); },
@@ -1347,6 +1377,30 @@ PP.UI = (() => {
     if (c && c.dataset.card && !c.classList.contains('big')) showTip(c);
     else if (tipFor) hideTip();
   }
+
+  U.relayout = function (full) {
+    if (!stage) return;
+    if (stage.querySelector('.title-scr')) {
+      if (full) return U.title();
+      const t = $('office');
+      if (t) {
+        t.width = officeW();
+        t.height = officeH();
+        startOffice(t, false);
+      }
+      return;
+    }
+    if (stage.querySelector('.news')) return U.morning();
+    const cv = $('office');
+    const S = E.state();
+    if (!cv || !$('top') || !S || !S.enc) return;
+    cv.width = officeW();
+    cv.height = officeH();
+    startOffice(cv, true, true);
+    hideTip();
+    armed = null;
+    refresh();
+  };
 
   U.init = function () {
     stage = $('stage');
