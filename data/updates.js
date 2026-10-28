@@ -2,6 +2,15 @@ window.PP = window.PP || {};
 
 PP.updates = [
   {
+    version: 'v0.7.0',
+    date: '2026-10-28',
+    groups: [
+      { title: '修正', items: [
+        'Claude 的地區資料、DeepSeek 被叫錯名字的那一行出現時，需求清單最後一項會被擠出框外'
+      ] }
+    ]
+  },
+  {
     version: 'v0.6.2',
     date: '2026-10-22',
     groups: [
