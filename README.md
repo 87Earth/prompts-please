@@ -32,7 +32,7 @@
 | src/ | engine.js（規則、回覆預覽、結局、事件）、ui.js（畫面、辦公室動畫、彩蛋、開發工具）、lang.js（語言切換、繁轉簡）、pixel.js（像素圖：模型小人、客人、圖示、生成的圖）、audio.js（合成音效與音樂）、main.js（縮放與啟動）、style.css、vendor/opencc-js/（繁轉簡詞典與轉換程式 opencc-js，MIT；詞典資料來自 OpenCC，Apache-2.0；授權檔在同一個資料夾） |
 | data/ | models.js（九個模型）、cards.js（工具、回覆風格）、rules.js（手冊規則、事實）、clients.js（客人、關卡內容、結局、小王的三天）、days.js（每天的客人與題庫、帳單、日報）、events.js（隨機事件）、chatter.js（同事閒聊）、zh.js（簡體版的用語對照）、updates.js（更新紀錄） |
 | assets/ | 字型 Fusion Pixel Font 12px 繁中版與簡中版（SIL OFL 1.1，授權在 fonts/OFL.txt）、模型頭像 |
-| tools/ | 測試：fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、zh_check.mjs（簡體轉換與字型缺字）。產生資料和素材：content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像） |
+| tools/ | 測試：fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、zh_check.mjs（簡體轉換與字型缺字）。產生資料和素材：content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像）。B 站 Toy 版打包：toy_pkg.mjs（套用 toy_patch.json，這份替換表只給 B 站審核用，GitHub 版和網頁版照原本文案）、toy_split.mjs（把資料檔拆成小檔） |
 | docs/ | gameplay.md（玩法與系統）、events.md（事件與內容一覽）、testing.md（測試方法）、development.md（架構、開發工具、新增內容的方法） |
 
 ## 開發
