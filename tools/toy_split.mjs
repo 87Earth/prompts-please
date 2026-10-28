@@ -9,30 +9,32 @@ const args = Object.fromEntries(process.argv.slice(2).map(a => a.replace(/^--/, 
 const pkg = path.resolve(ROOT, args.dir || 'work/toy/pkg');
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'tools/toy_patch.json'), 'utf8')).split;
 const htmlPath = path.join(pkg, 'index.html');
-const html = fs.readFileSync(htmlPath, 'utf8');
+let html = fs.readFileSync(htmlPath, 'utf8');
 const scriptsOf = h => [...h.matchAll(/<script src="([^"]+)"><\/script>/g)].map(m => m[1]);
+
+for (const f of cfg.drop || []) {
+  const line = `<script src="${f}"></script>\n`;
+  if (!fs.existsSync(path.join(pkg, f)) || html.split(line).length !== 2) throw new Error('要拿掉的檔案不在包裡或 index.html 裡：' + f);
+  fs.rmSync(path.join(pkg, f));
+  html = html.replace(line, '');
+}
+if (cfg.drop && cfg.drop.length) console.log('拿掉：' + cfg.drop.join('、'));
 
 const load = list => {
   const ctx = {};
   ctx.window = ctx;
   vm.createContext(ctx);
   const owners = {};
-  for (const f of list.filter(s => s.startsWith('data/'))) {
+  for (const f of list.filter(s => s.startsWith('data/') || s === 'src/registry.js')) {
     const before = new Set(Object.keys(ctx.PP || {}));
     vm.runInContext(fs.readFileSync(path.join(pkg, f), 'utf8'), ctx, { filename: f });
     for (const k of Object.keys(ctx.PP)) if (!before.has(k)) owners[k] = f;
   }
+  if (ctx.PP.finalize) ctx.PP.finalize();
   return { PP: ctx.PP, owners };
 };
 
 const before = load(scriptsOf(html));
-for (const [k, ids] of Object.entries(cfg.drop || {})) {
-  for (const id of ids) {
-    if (!before.PP[k] || !(id in before.PP[k])) throw new Error(`要拿掉的 PP.${k}.${id} 不存在`);
-    delete before.PP[k][id];
-  }
-  console.log(`拿掉 PP.${k}：${ids.join('、')}`);
-}
 const isObj = v => v !== null && typeof v === 'object';
 const prop = (expr, k) => /^[A-Za-z_$][\w$]*$/.test(k) ? `${expr}.${k}` : `${expr}[${JSON.stringify(k)}]`;
 let newHtml = html;
@@ -61,7 +63,7 @@ for (const file of cfg.files) {
     });
     if (prefix.length) emit(name, '');
   };
-  for (const k of Object.keys(before.owners).filter(k => before.owners[k] === file)) split('PP.' + k, k, before.PP[k], cfg.depthBy[k] ?? cfg.depth);
+  for (const k of Object.keys(before.owners).filter(k => before.owners[k] === file)) split('PP.' + k, k, before.PP[k], (cfg.depthBy || {})[k] ?? cfg.depth);
   const names = chunks.map(c => `data/${base}/${c.name.replace(/[^A-Za-z0-9_.-]/g, '_')}.js`);
   if (new Set(names).size !== names.length) throw new Error(file + ' 拆出的檔名重複');
   fs.mkdirSync(path.join(pkg, 'data', base), { recursive: true });
