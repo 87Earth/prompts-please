@@ -4,16 +4,19 @@
 
 ## 一次跑完：`npm test`
 
-依序執行下面四項，不開瀏覽器，大約十秒內跑完（目前實測 9 秒）。任何一項有錯誤，指令就會以失敗結束。
+依序執行下面七項，不開瀏覽器，大約十秒內跑完（目前實測 7 秒）。任何一項有錯誤，指令就會以失敗結束。
 
-1. `node tools/fuzz.mjs 2700`：規則壓力測試。
-2. `node tools/fuzz.mjs aliases`：DeepSeek 被叫錯名字時的台詞檢查。
-3. `node tools/fuzz.mjs save`：存檔一致性。
-4. `node tools/zh_check.mjs`：簡體轉換檢查。
+1. `node tools/sync_data.mjs --check`：`index.html` 的資料清單和 `data/` 底下的檔案一致。
+2. `node tools/task_check.mjs`：逐檔檢查資料。任務和事件不能有不認得的欄位（通常是拼錯），任務的必填欄位要齊全，需求的 `kind` 要存在，引用的事實、題庫、使用者規定、劇情線的客人都要存在，id 不能重複；錯誤會標出檔名。
+3. `node tools/compat_check.mjs`：舊版相容。從 git 歷史讀 v0.6.2（提交 `2735b20`）的舊格式資料檔（`data/models.js`、`clients.js`、`events.js`、`rules.js`），讓九個模型各玩 8 局，都要玩得完；`tests/fixtures/v0.6.2/saves.json` 的 v0.6.2 存檔、排程裡有已經刪掉的客人的存檔，都要讀得回來、玩得完。需要完整的 git 歷史。
+4. `node tools/fuzz.mjs 2700`：規則壓力測試。
+5. `node tools/fuzz.mjs aliases`：DeepSeek 被叫錯名字時的台詞檢查。
+6. `node tools/fuzz.mjs save`：存檔一致性。
+7. `node tools/zh_check.mjs`：簡體轉換檢查。
 
 ## 規則壓力測試：`node tools/fuzz.mjs <局數>`
 
-直接載入 `data/` 和 `src/engine.js`，不經過畫面，用固定的亂數隨機亂玩很多局：九個模型輪流、三局有一局是困難模式、一半的局老實勾選、一半亂勾，每五局有一局直接從第四天開始，每四局有一局用簡體版（檢查只屬於另一個語言版本的手冊規則不會出現、也不會被開違規通知）。過程中隨機使用工具（包括外援、Astra、伺服器忙）、交付、丟文件、刪掉寫好的東西、刪測試、停權、預覽回覆。
+照 `index.html` 的清單載入資料和 `src/engine.js`（`tools/lib/load.mjs`），不經過畫面，用固定的亂數隨機亂玩很多局：九個模型輪流、三局有一局是困難模式、一半的局老實勾選、一半亂勾，每五局有一局直接從第四天開始，每四局有一局用簡體版（檢查只屬於另一個語言版本的手冊規則不會出現、也不會被開違規通知）。過程中隨機使用工具（包括外援、Astra、伺服器忙）、交付、丟文件、刪掉寫好的東西、刪測試、停權、預覽回覆。
 
 每一步都檢查，有一項不成立就記成錯誤：
 

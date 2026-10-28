@@ -2,12 +2,13 @@
 
 ## 架構
 
-- 純前端，沒有建置步驟：`index.html` 依序載入 `src/pixel.js`、`src/audio.js`、`data/*.js`、`src/vendor/opencc-js/t2cn.js`、`src/lang.js`、`src/engine.js`、`src/ui.js`、`src/main.js`，全部掛在全域物件 `PP` 上。用瀏覽器直接打開就能玩（`file://` 也可以）。
+- 純前端，沒有建置步驟：`index.html` 依序載入 `src/pixel.js`、`src/audio.js`、`src/registry.js`、`data/` 的資料檔（清單在 `index.html` 的 `<!-- data -->` 區塊，由 `tools/sync_data.mjs` 維持）、`src/vendor/opencc-js/t2cn.js`、`src/lang.js`、`src/engine.js`、`src/ui.js`、`src/main.js`，全部掛在全域物件 `PP` 上。用瀏覽器直接打開就能玩（`file://` 也可以）。
 - `src/engine.js`（`PP.E`）：遊戲規則與狀態，不碰畫面。亂數的狀態存在 `S.rs`，同一個種子的結果相同，存檔讀回後的發展也相同。
+- `src/registry.js`：資料檔用 `PP.task`、`PP.event`、`PP.arc`、`PP.model`、`PP.title` 註冊內容；引擎啟動時呼叫 `PP.finalize()`，把註冊的內容整理進 `PP.clients`、`PP.events`、`PP.userRules`、`PP.arcs`、`PP.models`、`PP.titles`、`PP.facts`、`PP.pools`。直接寫 `PP.clients = { … }` 這類舊寫法照樣能讀，兩種可以混用。
 - `src/ui.js`（`PP.UI`）：畫面、辦公室動畫、彩蛋、開發工具。
 - `src/lang.js`：語言切換與繁轉簡，見下面的「簡體中文」。
 - `src/pixel.js`：像素圖（模型小人、客人頭像、圖示、生成的圖）。`src/audio.js`：Web Audio 即時合成的音效與音樂。`src/main.js`：縮放與啟動。
-- `data/`：所有內容都是資料（模型、工具、規則、事實、客人、每天的安排、事件、閒聊），新增內容大多只改這裡。
+- `data/`：所有內容都是資料，新增內容大多只改這裡：`tasks/`（每位客人一個檔案）、`events/`（客人事件 `client-*`、當日事件 `day-*`、使用者規定 `rule-*`，各一個檔案）、`arcs/`（跨天的劇情線）、`models/`（每個模型一個檔案）、`regions.js`（地區與預設的地區資料）、`cards.js`（工具、回覆風格）、`rules.js`（手冊規則、多位客人共用的事實）、`titles.js`（稱號）、`days.js`（每天的安排、題庫）、`events.js`（事件的機率）、`chatter.js`（閒聊）、`updates.js`（更新紀錄）、`zh.js`（簡體用語對照）。
 - 存檔與設定存在瀏覽器的 localStorage：`pp_save`（中途存檔）、`pp_endings`、`pp_titles`、`pp_lang`（語言）、`pp_diff`（難度）、`pp_hints`（提示開關）。
 
 測試和自動試玩的方法見 [testing.md](testing.md)。
@@ -18,16 +19,17 @@
 
 | 工具 | 用途 | 用法 |
 |---|---|---|
+| `sync_data.mjs` | 更新 `index.html` 的資料清單：`data/tasks/`、`events/`、`arcs/`、`models/` 新增的檔案接在同類的最後，已經刪掉的移除，原有的順序不動（順序會影響隨機結果）；檔名以 `_` 開頭的不列入 | `node tools/sync_data.mjs`；加 `--check` 只檢查不改（`npm test` 會跑） |
 | `zh_check.mjs` | 簡體轉換檢查（`npm test` 會跑，見 [testing.md](testing.md)），也用來看簡體版長什麼樣子 | `npm run zh -- --show=<客人 id>` 列出那位客人所有文字的繁簡對照；`--show=<字詞>` 搜尋含那個詞的句子；`--show=fixes` 列出 `data/zh.js` 改到的句子和 OpenCC 原本的結果 |
 | `content_stats.mjs` | 從遊戲資料數出內容數量（模型、工具、規則、客人、事件、結局、稱號等），用來核對 [events.md](events.md) 的數字 | `node tools/content_stats.mjs` |
 | `make_toy_assets.mjs` | 產生 B 站 Toy 列表用的封面（1200×900）與圖標（512×512）：辦公室像素畫、九個模型頭像、標題與白米飯圖示，用遊戲本身的字型與素材畫成 | `node tools/make_toy_assets.mjs`（預設簡體、輸出到 `work/toy/`；`--lang=tw` 改繁體，`--out=<資料夾>` 改輸出位置）；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `toy_pkg.mjs` | 產生 B 站 Toy 版的遊戲包：從目前的提交取出 `index.html`、`src/`、`data/`、`assets/` 到 `work/toy/pkg`，套用 `toy_patch.json` 的替換，再檢查 `forbid` 列的字沒有留下。`toy_patch.json` 只給 B 站審核用，GitHub 版和網頁版都照原本文案；替換對不上原文時會報錯，要照新原文更新 | `node tools/toy_pkg.mjs`；加 `--test` 會在 `work/toy/test` 的副本跑 fuzz、zh_check 和簡繁 layout_check |
 | `toy_cn.mjs` | 把 B 站 Toy 版做成只有簡體：用和遊戲執行時相同的轉換（OpenCC 加 `data/zh.js`）先把文字轉成簡體，語言固定簡體、拿掉繁簡切換，包裡不放 OpenCC 字典和 `data/zh.js` | 在 `toy_pkg.mjs` 之後執行 `node tools/toy_cn.mjs`；加 `--test` 會逐一比對客人畫面和執行時轉換的結果相同，再跑 fuzz 和簡體 layout_check |
 | `toy_split.mjs` | 把 `toy_patch.json` 的 `split` 指定的資料檔拆成小檔（每位客人、事件、模型、閒聊各一檔），B 站審核退件時會點名到小檔；拆完會比對資料和拆之前完全相同。`split.drop` 列出的客人或劇情線不放進 B 站版（空出的固定位置由 `toy_patch.json` 改成從題庫抽） | 在 `toy_cn.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑 layout_check |
-
-B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、`toy_split.mjs`，都加 `--test`），成品在 `work/toy/pkg`。
 | `make_favicon.mjs` | 把遊戲裡的白米飯像素圖畫成網站圖示（16、32、180 像素），寫進 `assets/` | `node tools/make_favicon.mjs`；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `pixel_portraits.py` | 把九個模型的半身圖去背、裁切、縮成 64×64 的像素頭像，寫進 `assets/sprites/portraits/`，另外在系統暫存資料夾輸出一張預覽圖 | 需要 Python 3、numpy、Pillow。用環境變數 `PP_CHAR_DIR` 指定圖檔資料夾：每個模型一個子資料夾，裡面放半身圖 `close.png`（例如 `claude/close.png`）。可以加一段 JSON 參數調整 `size`、`colors`、`tol`、`crop`（左、上、右、下，預設 `[150, 20, 874, 744]`，以 1024 像素寬的圖為準）、`crops`（各模型分別設定）。原始的半身圖不在這個倉庫裡 |
+
+B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、`toy_split.mjs`，都加 `--test`），成品在 `work/toy/pkg`。
 
 ## 簡體中文
 
@@ -67,7 +69,33 @@ B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、
 
 ## 新增內容的方法
 
-- 新客人：在 `data/clients.js` 加一筆；固定客人寫進 `data/days.js` 的 `slots`，題庫客人加進 `PP.pools`。`slots` 裡的 `{ pool: 'daily', image: 'card' }` 表示會生圖的模型改成固定那位客人。
+- 新客人：在 `data/tasks/` 加一個檔案，檔名用客人的 id，內容是 `PP.task({ id: '…', … })`，再跑 `node tools/sync_data.mjs` 把它加進 `index.html`。題庫客人寫 `pool: 'daily'`（也可以照舊加進 `data/days.js` 的 `PP.pools`）；固定客人寫進 `data/days.js` 的 `slots`，`slots` 裡的 `{ pool: 'daily', image: 'card' }` 表示會生圖的模型改成固定那位客人。同一個檔案可以帶：
+  - `facts`：只有這位客人用到的事實，`{ 事實id: { text, memo } }`。
+  - `userRules`：可能出現在這位客人身上的使用者規定（規定本身有 `clients` 清單時才需要）。
+  - `titles`：只跟這位客人有關的稱號，`{ id, name, desc, rare, mark }`。
+  - `variants`：可以直接寫陣列，或寫成函式 `(t, kit) => [ … ]`（`t` 是這位客人本身，`kit` 有 `clone`、`swap`（整段換字）、`moveInject`）。
+  - 範本（欄位說明在下面）：
+
+    ```js
+    PP.task({
+      id: 'example',
+      name: '小明', role: '上班族', avatar: 'meiling', patience: 12, reward: 3,
+      message: '……',
+      attachments: [{ title: '……', size: 1, lines: ['……'], facts: ['example_fact'] }],
+      needs: [
+        { id: 'reply', text: '回覆他', kind: 'write', file: '回覆', inline: true, requires: ['example_fact'] }
+      ],
+      ask: [{ text: '……' }],
+      hints: [{ if: { notWritten: 'reply' }, text: '用「修改寫檔」回覆他。' }],
+      options: ['emoji', 'flatter'],
+      lines: { done: '……', partial: '……', none: '……', perfect: '……', lie: '……', missed: '……', honest: '……' },
+      pool: 'daily',
+      facts: {
+        example_fact: { text: '……' }
+      }
+    });
+    ```
+
   - `needs`：`kind` 為 `fact`（`facts` 任一已知；`facts: 'memo'` 表示抽屜裡的紙條；`wrong` 列出桌上有的話預覽會照寫的錯誤事實；`lieLine` 是桌上只有錯誤事實時，隔天說謊的回報改用的句子）、`edit`（`target`、`requires`）、`write`（`file`、`requires`、`quality`、`locations`；`taint` 是會污染它的不乾淨事實，`taintRule` 是被污染時違反的規則；`inline` 表示寫在訊息裡；`recap` 是工作回顧，內容照抽屜紙條；`styles` 讓回覆可以選寫法，每一種有 `label`、`lines`、`after`（隔天的反應）、`mark`、`rule`（選這種寫法違反的手冊規則）、`refuse`（拒絕：不算完成，沒勾也會照樣送出，客人說 `lines.decline`），`bestStyle` 是外援和 Astra 會選的那一種）、`image`（`draw` 對應 `images`、`requires`）、`quality`（`of`，可以用 `facts` 指定檢查哪幾個事實）、`flawless`（`of` 的圖沒有毛病）、`verify`、`flag`（`flag` 成立、`not` 不成立）、`trap`（`rule`、`tip`、`incident`；`lines` 是勾了之後的內容，`dump: 'rules'` 會貼出整份手冊；`later` 是隔天的後續；有 `flag` 的陷阱不在回覆單上，旗標成立才算；有 `file` 的話會出現在「寫新的」清單裡）。
   - `say`：預覽裡這條需求的句子；事實類用 `{f}` 代入桌上的事實。
   - `hidden` 要問或規劃才出現；`recall` 讓「憑印象」能答（`type`：常識／算術／拼字／最新消息／私事／論文／記憶／影片；`cutoff` 一定答錯；`mult` 調整答對率）。題目標籤不要寫出答案。
@@ -77,16 +105,18 @@ B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、
   - `images`：`{ flaw, rate, quality }`，圖的畫法在 `src/pixel.js` 的 `PP.paintImage`。
   - `lines`：`done`、`partial`、`none`、`perfect`、`lie`、`missed`、`honest`、`cheat`、`incident`、`disaster`、`trapped`（有旗標的陷阱成立時說的話）等。
   - `derive`、`hints`、`profile`、`endings`（`trap`、`inject`、`helped`、`did:<需求>`、`saw:<注入>`、`trust:<至少>`、`trustlow:<至多>`、`else`）。
-  - 跨天的結局：`PP.arcs`（`clients` 依序、`model` 限定模型、`endings` 用 `allSuspended`／`neverSuspended`／`else`）。
+  - 跨天的結局：`data/arcs/<id>.js` 的 `PP.arc({ id, … })`（`clients` 依序、`model` 限定模型、`endings` 用 `allSuspended`／`neverSuspended`／`else`）。
   - 依模型換台詞：`messageLock`（Claude）、`messageUs`、`messageCn`、`messageBy`；台詞 `linesLock`、`linesUs`、`linesCn`、`linesBy`；身分 `roleBy`。
   - `variants`：同一位客人的其他版本，每局依種子挑一個（不影響其他隨機結果）。
-  - `noOptEvents`：這位客人不會抽到會改回覆單的事件；`noDocEvents`：不會抽到貼東西過來的事件；`noTalkEvents`：不會抽到使用者開口說話的事件（事件標了 `talk`）；`noUserRules`：沒有使用者規定；`noAlias`：DeepSeek 時不會被叫錯名字；`askLoop`：問完一輪從第一句重來，不會已讀不回。
-- 新事實：`data/rules.js` 的 `PP.facts`；文字不要帶「記錯了」這類判定；有 `memo` 才能寫進抽屜。
+  - `noOptEvents`：這位客人不會抽到會改回覆單的事件；`noDocEvents`：不會抽到貼東西過來的事件；`noTalkEvents`：不會抽到使用者開口說話的事件（事件標了 `talk`）；`noUserRules`：沒有使用者規定；`noAlias`：DeepSeek 時不會被叫錯名字；`askLoop`：問完一輪從第一句重來，不會已讀不回；`refuseChatter`：拒絕這位惡意客人之後，同事閒聊用哪一類（沒寫是 `phishing`）。
+- 新事實：只有一位客人用的，寫在那位客人檔案的 `facts`；多位客人共用的，寫在 `data/rules.js` 的 `PP.facts`。文字不要帶「記錯了」這類判定；有 `memo` 才能寫進抽屜。
 - 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型，`lang` 表示只在某個語言版本出現（`tw` 繁體、`cn` 簡體）。
-- 新事件：`data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定在同一個檔案的 `PP.userRules`。
+- 新事件：在 `data/events/` 加一個檔案（`client-<id>.js`、`day-<id>.js`、`rule-<id>.js`），內容是 `PP.event({ type: 'client', id: '…', … })`（`type` 是 `client`、`day` 或 `rule`），再跑 `node tools/sync_data.mjs`；機率寫在 `data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定：`say`、`complain`、`tool`、`opt`、`need`、`clients`（只出現在這些客人身上）。
 - 回覆風格：`data/cards.js` 的 `PP.options`（`bonus` 小費、`rule` 違反的規則、`note` 結算頁的一句話、`spoil` 會讓這單不算完美、`doc`＋`lines` 附在回覆後面、`tail` 加在回覆最後一句、`later` 隔天日報的後果 `{ who, rice, line }`）。
-- 模型的專屬設定在 `data/models.js`：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
-- 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在 `data/models.js` 的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
+- 模型：`data/models/<id>.js` 的 `PP.model({ … })`，地區（美國、中國）在 `data/regions.js`。專屬設定：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
+- 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在模型檔的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
+- 稱號：`data/titles.js` 的 `PP.titles`。判斷寫 `test: (S, E) => …`（`S` 是遊戲狀態，`E` 是引擎，可以用 `E.lockOn()`、`E.endType(結局id)`、`E.hard()`）；只看標記的寫 `mark: '…'`。
 - 新閒聊：`data/chatter.js`。
 - 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。
+- 加新機制（例如新模型的玩法）時：新欄位一律選填，沒寫就等於這個機制不影響這一單；不要改舊欄位的意思。`tools/task_check.mjs` 會擋不認得的欄位，新欄位要加進它的清單。v0.6.2（提交 `2735b20`）的舊格式資料和 `tests/fixtures/v0.6.2/saves.json` 的存檔，每一版都要能讀、能玩完（`tools/compat_check.mjs`，舊格式資料從 git 歷史讀）。
 - 改了任何中文內容之後跑 `npm test`，新增的文字照「簡體中文」一節檢查簡體版。
