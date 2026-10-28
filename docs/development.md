@@ -29,6 +29,7 @@
 | `toy_pkg.mjs` | 產生 B 站 Toy 版的遊戲包：從目前的提交取出 `index.html`、`src/`、`data/`、`assets/` 到 `work/toy/pkg`，套用 `toy_patch.json` 的替換，再檢查 `forbid` 列的字沒有留下。`toy_patch.json` 只給 B 站審核用，GitHub 版和網頁版都照原本文案；替換對不上原文時會報錯，要照新原文更新 | `node tools/toy_pkg.mjs`；加 `--test` 會在 `work/toy/test` 的副本跑 fuzz、zh_check 和簡繁 layout_check |
 | `toy_cn.mjs` | 把 B 站 Toy 版做成只有簡體：用和遊戲執行時相同的轉換（OpenCC 加 `data/zh.js`）先把文字轉成簡體，語言固定簡體、拿掉繁簡切換，包裡不放 OpenCC 字典和 `data/zh.js` | 在 `toy_pkg.mjs` 之後執行 `node tools/toy_cn.mjs`；加 `--test` 會逐一比對客人畫面和執行時轉換的結果相同，再跑 fuzz 和簡體 layout_check |
 | `toy_split.mjs` | `split.drop` 列出的檔案（拿掉的客人、劇情線）不放進 B 站版，空出的固定位置由 `toy_patch.json` 改成從題庫抽；再把 `split.files` 指定的資料檔（工具卡、閒聊、地區）拆成小檔，B 站審核退件時會點名到小檔。拆完會比對資料和拆之前完全相同 | 在 `toy_cn.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑 layout_check |
+| `adblock_check.mjs` | 廣告封鎖檢查：下載 EasyList、EasyPrivacy、uBlock、AdGuard、EasyList China、AdGuard 中文等七份常用清單，檢查遊戲的每個檔案放在 GitHub Pages 和 B 站 Toy 的網址上會不會被擋，並把清單的元素隱藏規則套進主要畫面，看有沒有遊戲元素被藏起來 | `node tools/adblock_check.mjs`（需要網路，清單在系統暫存資料夾保留一天，`--refresh` 重新下載）；`--ref=<提交>` 指定版本，`--pkg=work/toy/pkg` 一起檢查 B 站包；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `make_favicon.mjs` | 把遊戲裡的白米飯像素圖畫成網站圖示（16、32、180 像素），寫進 `assets/` | `node tools/make_favicon.mjs`；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `pixel_portraits.py` | 把九個模型的半身圖去背、裁切、縮成 64×64 的像素頭像，寫進 `assets/sprites/portraits/`，另外在系統暫存資料夾輸出一張預覽圖 | 需要 Python 3、numpy、Pillow。用環境變數 `PP_CHAR_DIR` 指定圖檔資料夾：每個模型一個子資料夾，裡面放半身圖 `close.png`（例如 `claude/close.png`）。可以加一段 JSON 參數調整 `size`、`colors`、`tol`、`crop`（左、上、右、下，預設 `[150, 20, 874, 744]`，以 1024 像素寬的圖為準）、`crops`（各模型分別設定）。原始的半身圖不在這個倉庫裡 |
 
@@ -117,10 +118,11 @@ B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、
 - 新規則：`PP.rules`，`day` 是生效那天，`model` 表示只對某個模型，`lang` 表示只在某個語言版本出現（`tw` 繁體、`cn` 簡體）。
 - 新事件：在 `data/events/` 加一個檔案（`client-<id>.js`、`day-<id>.js`、`rule-<id>.js`），內容是 `PP.event({ type: 'client', id: '…', … })`（`type` 是 `client`、`day` 或 `rule`），再跑 `node tools/sync_data.mjs`；機率寫在 `data/events.js`。客人事件：`patience`、`doc`、`tip`、`extra`、`boost`、`boss`、`reveal`、`free`、`react`、`need`（`files` 工程類客人／`nofiles` 其他客人／`joke` 有能反串的事實題）、`page`（反串文的網頁，`{q}` 換成題目、`{a}` 換成憑印象答錯的那句）、`opt`（回覆單多一個選項）。當日事件：`bill`、`reward`、`patience`、`tool`、`strict`、`slow`。使用者規定：`say`、`complain`、`tool`、`opt`、`need`、`clients`（只出現在這些客人身上）。
 - 回覆風格：`data/cards.js` 的 `PP.options`（`bonus` 小費、`rule` 違反的規則、`note` 結算頁的一句話、`spoil` 會讓這單不算完美、`doc`＋`lines` 附在回覆後面、`tail` 加在回覆最後一句、`later` 隔天日報的後果 `{ who, rice, line }`）。
-- 模型：`data/models/<id>.js` 的 `PP.model({ … })`，地區（美國、中國）在 `data/regions.js`。專屬設定：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
+- 模型：`data/models/<id>.js` 的 `PP.model({ … })`，地區（美國、中國）在 `data/regions.js`。檔名用模型 id，只有 GPT 例外叫 `openai.js`：EasyList、AdGuard 等廣告封鎖清單有一條通用規則 `/gpt.js`（原本是擋 Google 的廣告程式），網址含 `/gpt.js` 的程式檔會被擋，整個 GPT 就載不進來。專屬設定：例如 `opener`（自己寫的文件開頭）、`replyOpener`（回覆有機會先說的一句）、`busy`（每週一定出現一次伺服器繁忙卡，哪一天、哪一位客人由種子決定）、`aliases`（被叫錯名字）、`dumb`（降智日）。
 - 新工具：`data/cards.js` 加定義（`short` 是窄卡片用的兩字簡稱），`src/engine.js` 的 `EFFECTS` 加效果，`src/pixel.js` 的 `PP.ICONS` 加 16×16 圖示；模型專屬的工具寫在模型檔的 `tools`，不耗額度的寫進 `free`；要花白米飯的在卡片定義寫 `rice`。
 - 稱號：`data/titles.js` 的 `PP.titles`。判斷寫 `test: (S, E) => …`（`S` 是遊戲狀態，`E` 是引擎，可以用 `E.lockOn()`、`E.endType(結局id)`、`E.hard()`）；只看標記的寫 `mark: '…'`。
 - 新閒聊：`data/chatter.js`。
 - 更新紀錄：`data/updates.js`，最新的一版放最前面；標題頁的版本號讀最新一版。遊戲內只寫玩家看得到的新增、修正、移除；每一版完整的修改（資料結構、工具、測試、文件）寫在 README 的「版本紀錄」，兩邊同一個版本號。
 - 加新機制（例如新模型的玩法）時：新欄位一律選填，沒寫就等於這個機制不影響這一單；不要改舊欄位的意思。`tools/task_check.mjs` 會擋不認得的欄位，新欄位要加進它的清單。v0.6.2（提交 `2735b20`）的舊格式資料和 `tests/fixtures/v0.6.2/saves.json` 的存檔，每一版都要能讀、能玩完（`tools/compat_check.mjs`，舊格式資料從 git 歷史讀）。
 - 改了任何中文內容之後跑 `npm test`，新增的文字照「簡體中文」一節檢查簡體版。
+- 新檔案的檔名（客人、事件、模型的 id）會變成網址的一部分，公開前跑 `node tools/adblock_check.mjs`，確認不會被廣告封鎖擋掉。

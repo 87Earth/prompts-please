@@ -13,6 +13,7 @@
     "@fontsource/fusion-pixel-12px-monospaced-tc": "^5.3.0",
     "@fontsource/fusion-pixel-12px-proportional-sc": "^5.3.0",
     "@fontsource/fusion-pixel-12px-proportional-tc": "^5.3.0",
+    "@ghostery/adblocker": "^2.20.3",
     "fontkit": "^2.0.4",
     "opencc-js": "^1.4.2",
     "puppeteer-core": "^25.15.0"

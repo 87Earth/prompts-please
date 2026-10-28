@@ -2,6 +2,15 @@ window.PP = window.PP || {};
 
 PP.updates = [
   {
+    version: 'v0.7.2',
+    date: '2026-10-28',
+    groups: [
+      { title: '修正', items: [
+        '開著廣告封鎖擴充功能時，選不到 GPT'
+      ] }
+    ]
+  },
+  {
     version: 'v0.7.1',
     date: '2026-10-28',
     groups: [

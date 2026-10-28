@@ -1,6 +1,6 @@
 # 測試方法
 
-遊戲本身不需要安裝任何東西；測試要先在專案資料夾執行 `npm install`（裝 puppeteer-core、opencc-js、fontkit、字型原檔）。需要 Node.js 22.12 以上（puppeteer-core 25 的要求；目前用 v24.15.0 測過），自動試玩另外需要系統安裝的 Chrome，或用 `--browser` 指定 Edge 等 Chromium 系的瀏覽器。
+遊戲本身不需要安裝任何東西；測試要先在專案資料夾執行 `npm install`（裝 puppeteer-core、opencc-js、fontkit、字型原檔、@ghostery/adblocker）。需要 Node.js 22.12 以上（puppeteer-core 25 的要求；目前用 v24.15.0 測過），自動試玩另外需要系統安裝的 Chrome，或用 `--browser` 指定 Edge 等 Chromium 系的瀏覽器。
 
 ## 一次跑完：`npm test`
 
@@ -127,7 +127,17 @@ node tools/playtest.mjs --model=claude --seed=3 --mode=good
 
 網站架好之後，可以用 `node tools/pages_check.mjs --url=<網址>` 直接檢查線上版。
 
-公開或更新網頁版之前，建議依序跑：`npm test`、`node tools/layout_check.mjs`、`node tools/layout_check.mjs --lang=cn`、`node tools/layout_check.mjs --portrait`、`node tools/layout_check.mjs --portrait --lang=cn`、`node tools/pages_check.mjs`。
+## 廣告封鎖檢查：`node tools/adblock_check.mjs`
+
+很多玩家開著廣告封鎖擴充功能。只要一個資料檔被擋，那部分內容就整個消失，而且只在開著擴充功能的瀏覽器發生；本機用 `file://` 打開、無痕模式、手機通常都看不出來。
+
+1. 下載七份常用清單（EasyList、EasyPrivacy、uBlock filters、uBlock privacy、AdGuard Base、EasyList China、AdGuard Chinese），用 `@ghostery/adblocker` 比對。清單在系統暫存資料夾保留一天，`--refresh` 重新下載。
+2. 已提交的每個檔案（預設 `HEAD`，`--ref` 指定），依類型（程式、樣式、圖片、字型）當成 GitHub Pages 和 B 站 Toy 網址上的請求，檢查有沒有規則擋到。加 `--pkg=work/toy/pkg` 會連 B 站包一起檢查。
+3. 開遊戲的主要畫面（標題、選模型、日報、上班、回覆單、更新紀錄、成就、這週結束），把各清單在這兩個網站的元素隱藏規則套上去，檢查有沒有遊戲元素被藏起來。
+
+有檔案被擋或元素被藏就以失敗結束，並列出檔案、清單和規則。需要網路；不放進 `npm test`。
+
+公開或更新網頁版之前，建議依序跑：`npm test`、`node tools/layout_check.mjs`、`node tools/layout_check.mjs --lang=cn`、`node tools/layout_check.mjs --portrait`、`node tools/layout_check.mjs --portrait --lang=cn`、`node tools/pages_check.mjs`、`node tools/adblock_check.mjs`。
 
 ## 手動測試
 

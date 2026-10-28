@@ -32,24 +32,32 @@
 | src/ | engine.js（規則、回覆預覽、結局、事件）、ui.js（畫面、辦公室動畫、彩蛋、開發工具）、lang.js（語言切換、繁轉簡）、pixel.js（像素圖：模型小人、客人、圖示、生成的圖）、audio.js（合成音效與音樂）、main.js（縮放與啟動）、style.css、vendor/opencc-js/（繁轉簡詞典與轉換程式 opencc-js，MIT；詞典資料來自 OpenCC，Apache-2.0；授權檔在同一個資料夾） |
 | data/ | tasks/（每位客人一個檔案：關卡內容、結局、只有他用到的事實）、events/（每個隨機事件一個檔案）、arcs/（小王的三天）、models/（九個模型）、regions.js（地區）、cards.js（工具、回覆風格）、rules.js（手冊規則、共用的事實）、titles.js（稱號）、days.js（每天的客人與題庫、帳單、日報）、events.js（事件的機率）、chatter.js（同事閒聊）、zh.js（簡體版的用語對照）、updates.js（更新紀錄） |
 | assets/ | 字型 Fusion Pixel Font 12px 繁中版與簡中版（SIL OFL 1.1，授權在 fonts/OFL.txt）、模型頭像 |
-| tools/ | 測試：task_check.mjs（逐檔檢查資料）、compat_check.mjs（v0.6.2 的舊格式資料和存檔能不能讀、能不能玩完）、fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、zh_check.mjs（簡體轉換與字型缺字），lib/load.mjs 是測試共用的載入器。產生資料和素材：sync_data.mjs（維持 index.html 的資料清單）、content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像）。B 站 Toy 版打包：toy_pkg.mjs（套用 toy_patch.json，這份替換表只給 B 站審核用，GitHub 版和網頁版照原本文案）、toy_cn.mjs（B 站版只有簡體）、toy_split.mjs（把資料檔拆成小檔），`npm run toy` 一次跑完 |
+| tools/ | 測試：task_check.mjs（逐檔檢查資料）、compat_check.mjs（v0.6.2 的舊格式資料和存檔能不能讀、能不能玩完）、fuzz.mjs（規則隨機壓力測試）、playtest.mjs（無頭瀏覽器自動試玩＋截圖）、layout_check.mjs（版面溢出）、pages_check.mjs（公開網頁版能不能正常玩）、adblock_check.mjs（常用的廣告封鎖清單會不會擋到遊戲的檔案、藏起畫面上的元素）、zh_check.mjs（簡體轉換與字型缺字），lib/load.mjs 是測試共用的載入器。產生資料和素材：sync_data.mjs（維持 index.html 的資料清單）、content_stats.mjs（內容數量）、make_favicon.mjs（網站圖示）、make_toy_assets.mjs（B 站 Toy 列表的封面與圖標）、pixel_portraits.py（模型頭像）。B 站 Toy 版打包：toy_pkg.mjs（套用 toy_patch.json，這份替換表只給 B 站審核用，GitHub 版和網頁版照原本文案）、toy_cn.mjs（B 站版只有簡體）、toy_split.mjs（把資料檔拆成小檔），`npm run toy` 一次跑完 |
 | tests/ | fixtures/v0.6.2/saves.json（v0.6.2 的存檔，相容測試用） |
 | docs/ | gameplay.md（玩法與系統）、events.md（事件與內容一覽）、testing.md（測試方法）、development.md（架構、開發工具、新增內容的方法） |
 
 ## 開發
 
-- `npm install`：裝開發用套件（puppeteer-core、opencc-js、fontkit、字型原檔）。遊戲本身不需要。需要 Node.js 22.12 以上。
+- `npm install`：裝開發用套件（puppeteer-core、opencc-js、fontkit、字型原檔、@ghostery/adblocker）。遊戲本身不需要。需要 Node.js 22.12 以上。
 - `npm test`：資料清單檢查、逐檔檢查、v0.6.2 相容測試、規則壓力測試 2700 局、DeepSeek 稱呼檢查、存檔一致性 180 局、簡體轉換檢查，不開瀏覽器；有錯誤時指令會失敗。相容測試從 git 歷史讀 v0.6.2 的資料檔，需要完整的 clone。
 - 在 `data/tasks/`、`data/events/`、`data/models/`、`data/arcs/` 新增或刪除檔案後，跑 `node tools/sync_data.mjs` 更新 `index.html` 的資料清單。新增客人、事件、模型的寫法見 [docs/development.md](docs/development.md)。
 - `node tools/playtest.mjs --model=claude --seed=3 --mode=good`：用系統安裝的 Chrome（或用 `--browser` 指定 Edge 等瀏覽器）無頭模式自動玩完一週並截圖。
 - `node tools/layout_check.mjs`：檢查客人畫面和日報有沒有文字被擠出框外；加 `--lang=cn` 檢查簡體版，加 `--portrait` 用手機直拿的尺寸檢查，`--size=寬x高`（觸控裝置再加 `--touch`）檢查其他螢幕，這兩種會連所有畫面和視窗一起檢查。
 - `node tools/pages_check.mjs`：只用倉庫裡的檔案架一個本機網站，模擬 GitHub Pages，確認網頁版能正常玩。
+- `node tools/adblock_check.mjs`：用七份常用的廣告封鎖清單，檢查遊戲的檔案在 GitHub Pages 和 B 站 Toy 上會不會被擋（需要網路）。新增客人、事件、模型的檔案之後，公開前要跑。
 - `npm run zh -- --show=<客人 id>`：列出那位客人所有文字的繁簡對照。新增內容都要有繁簡兩種版本，簡體版的做法見 [docs/development.md](docs/development.md) 的「簡體中文」。
 - 各項測試檢查什麼、自動試玩的參數和打法，見 [docs/testing.md](docs/testing.md)；產生資料和素材的工具見 [docs/development.md](docs/development.md)。
 
 ## 版本紀錄
 
 標題頁的「更新紀錄」只列玩家看得到的新增、修正、移除；這裡逐版列出全部的修改。
+
+### v0.7.2（2026-10-28）
+
+- 修正：瀏覽器開著廣告封鎖擴充功能時，GPT 整個不見（選不到 GPT、辦公室裡也沒有 GPT）。原因是 GPT 的資料檔叫 `data/models/gpt.js`，EasyList、AdGuard 等清單有一條通用規則 `/gpt.js`（原本用來擋 Google 的廣告程式），整個檔案被擋掉。檔名改成 `data/models/openai.js`，模型 id 仍是 `gpt`，存檔不受影響；本機用 `file://` 打開、無痕模式、手機通常不跑擴充功能，所以之前沒看出來。
+- 工具與測試：新增 `adblock_check.mjs`，用七份常用清單檢查遊戲的每個檔案在 GitHub Pages 和 B 站 Toy 上會不會被擋，並檢查元素隱藏規則有沒有藏到遊戲畫面；開發用套件多了 `@ghostery/adblocker`。
+- 簡體用語：「廣告封鎖」→「广告拦截」、「擴充功能」→「插件」。
+- 文件：`docs/development.md`（模型檔名的例外、新檔案要檢查廣告封鎖）、`docs/testing.md`（廣告封鎖檢查）。
 
 ### v0.7.1（2026-10-28）
 
