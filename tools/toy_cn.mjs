@@ -127,11 +127,7 @@ if (test) {
   const t = path.join(ROOT, 'work', 'toy', 'test-cn');
   clear(t);
   fs.cpSync(pkg, t, { recursive: true });
-  const fuzz = fs.readFileSync(path.join(ROOT, 'tools', 'fuzz.mjs'), 'utf8');
-  const cut = "'data/zh.js', '" + DICT + "/t2cn.js', ";
-  if (!fuzz.includes(cut)) throw new Error('fuzz.mjs 的檔案清單和預期不同');
-  fs.mkdirSync(path.join(t, 'tools'), { recursive: true });
-  fs.writeFileSync(path.join(t, 'tools', 'fuzz.mjs'), fuzz.replace(cut, ''));
+  for (const f of ['fuzz.mjs', 'lib']) fs.cpSync(path.join(ROOT, 'tools', f), path.join(t, 'tools', f), { recursive: true });
   let failed = 0;
   const run = (label, cmd, cwd) => {
     try {

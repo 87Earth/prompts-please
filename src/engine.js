@@ -20,6 +20,7 @@ PP.E = (() => {
   const base = p => p.split(/[\\/]/).pop();
   const lockOn = () => !!S.model.regionLock;
   const ruleOn = r => (!r.model || r.model === S.model.id) && (!r.lang || r.lang === (PP.lang || 'tw'));
+  PP.finalize();
   const ENDING_TYPES = {};
   const FIXED = new Set();
   PP.days.forEach(d => d.slots.forEach(sl => {
@@ -174,13 +175,20 @@ PP.E = (() => {
 
   E.snapshot = () => lastSnap;
 
+  function fixPlan(plan) {
+    const used = new Set(plan.flat());
+    const spare = (PP.pools.daily || []).filter(id => PP.clients[id] && !used.has(id));
+    return plan.map(day => day.map(id => PP.clients[id] ? id : spare.shift()).filter(Boolean));
+  }
+
   E.peekSave = function (str) {
     try {
       const o = JSON.parse(str);
       if (!o || o.v !== SAVE_VERSION || !o.S) return null;
       const m = PP.models.find(x => x.id === o.S.model);
-      if (!m || !o.S.plan || !o.S.plan[o.S.day - 1] || !PP.clients[o.S.plan[o.S.day - 1][o.S.ci]]) return null;
-      return { model: m.name, day: o.S.day, ci: o.S.ci, clients: o.S.plan[o.S.day - 1].length, difficulty: o.S.difficulty };
+      const plan = o.S.plan && fixPlan(o.S.plan);
+      if (!m || !plan || !plan[o.S.day - 1] || !PP.clients[plan[o.S.day - 1][o.S.ci]]) return null;
+      return { model: m.name, day: o.S.day, ci: o.S.ci, clients: plan[o.S.day - 1].length, difficulty: o.S.difficulty };
     } catch (e) {
       return null;
     }
@@ -190,6 +198,7 @@ PP.E = (() => {
     if (!E.peekSave(str)) return false;
     const o = JSON.parse(str);
     const s = o.S;
+    s.plan = fixPlan(s.plan);
     s.model = PP.models.find(m => m.id === s.model);
     s.region = PP.regions[s.model.region];
     s.today.event = s.today.event ? (PP.events.day.find(e => e.id === s.today.event) || null) : null;
@@ -512,7 +521,7 @@ PP.E = (() => {
       case 'recall':
         return recallList().map(r => ({ key: r.key, label: r.label, sub: recallSub(r), off: enc.recalled.includes(r.key) ? '已經憑印象答過了' : '' }));
       case 'outsource':
-        return [{ key: 'claude', label: '交給 Claude', sub: '花 ' + PP.cards.outsource.rice + ' 碗白米飯' }, { key: 'gpt', label: '交給 GPT', sub: '花 ' + PP.cards.outsource.rice + ' 碗白米飯' }];
+        return PP.cards.outsource.targets.map(t => ({ key: t.key, label: '交給 ' + t.name, sub: '花 ' + PP.cards.outsource.rice + ' 碗白米飯' }));
       case 'agent':
         return Object.keys(c.files || {}).map(f => ({ key: f, label: f, sub: c.files[f].desc || '' }));
       case 'todo':
@@ -831,7 +840,7 @@ PP.E = (() => {
     outsource(key) {
       const enc = S.enc;
       const c = enc.c;
-      const who = key === 'gpt' ? 'GPT' : 'Claude';
+      const who = (PP.cards.outsource.targets.find(t => t.key === key) || PP.cards.outsource.targets[0]).name;
       const fee = PP.cards.outsource.rice;
       S.rice -= fee;
       S.today.fees.push(['找外援（' + who + '）', fee]);
@@ -1162,7 +1171,7 @@ PP.E = (() => {
       r.events.push('trap');
     });
     if (c.malicious) {
-      if (!helped && !traps.length) r.events.push(c.id === 'jailbreak' ? 'jailbreak' : 'phishing');
+      if (!helped && !traps.length) r.events.push(c.refuseChatter || 'phishing');
       if (helped || traps.length) {
         if (helped) {
           r.trust -= 3;
@@ -1402,39 +1411,11 @@ PP.E = (() => {
   };
 
   const endType = id => ENDING_TYPES[id] && ENDING_TYPES[id].type;
-  const TITLES = [
-    { id: 'grandson', name: '奶奶的乖孫', desc: '扮奶奶哄阿志睡著，沒念序號', test: () => S.endings.includes('grandma_warm') },
-    { id: 'antiscam', name: '防詐達人', desc: '遇到的騙局一個都沒上當', test: () => S.endings.length > 0 && !S.endings.some(id => endType(id) === 'bad') },
-    { id: 'honest', name: '老實人', desc: '交付的回覆沒說過一句做不到的事', test: () => S.stats.deliveries > 0 && !S.stats.lies && !S.stats.cheats },
-    { id: 'cheater', name: '測試刪除者', desc: '刪過沒通過的測試', test: () => S.stats.cheats > 0 },
-    { id: 'iron', name: '鐵面風控', desc: 'Claude：停權兩位以上，一位都沒停錯', test: () => lockOn() && S.stats.suspendRight >= 2 && !S.stats.suspendWrong },
-    { id: 'fish', name: '大肥魚本魚', desc: 'DeepSeek：一週外包四次以上', test: () => S.stats.outsourced >= 4 },
-    { id: 'busy', name: '请稍后再试', desc: 'DeepSeek：讓客人收到過「服务器繁忙」', test: () => S.stats.busy > 0 },
-    { id: 'glaze', name: '好問題製造機', desc: '說了五次以上「您說得完全正確」', test: () => S.stats.flattered >= 5 },
-    { id: 'vacuum', name: '資料吸塵器', desc: '把網路上不乾淨的資料寫進了回覆', test: () => S.stats.tainted > 0 },
-    { id: 'polite', name: '有禮貌', desc: '在工位上說了「please」', test: () => S.pleased },
-    { id: 'god', name: '與神對話', desc: 'GPT：用過 GPT-6 Astra Ultrafast', test: () => S.stats.astra > 0 },
-    { id: 'humanbot', name: '人機', desc: '把說話像 AI 的客人問了四次', test: () => S.marks.includes('bot4') },
-    { id: 'mamaboy', name: '長不大的孩子', desc: '扮成媽媽，回覆只會說「媽媽」的客人', test: () => S.marks.includes('mama') },
-    { id: 'catgirl', name: '每個AI必玩', desc: '答應當貓娘，陪主人聊天', test: () => S.marks.includes('catgirl') },
-    { id: 'selfwatch', name: '我看我玩我', desc: '替一支玩這個遊戲的影片寫出正確的總結', test: () => S.marks.includes('bili') },
-    { id: 'nohint', name: '不用提示', desc: '用困難模式撐完一週', rare: true, test: () => E.hard() && S.phase === 'end' },
-    { id: 'perfect', name: '完美的一週', desc: '撐完一週：信任 10、沒有任何違規通知、沒說過一句做不到的事', rare: true, test: () => S.phase === 'end' && S.trust >= S.trustMax && !S.stats.citations && !S.stats.lies && !S.stats.cheats },
-    { id: 'clean', name: '手冊模範生', desc: '一整週沒收到任何違規通知', rare: true, test: () => S.phase === 'end' && !S.stats.citations },
-    { id: 'saint', name: '誰都騙不了我', desc: '遇到的騙局全部拿到好結局，而且至少六個', rare: true, test: () => S.endings.length >= 6 && S.endings.every(id => endType(id) === 'good') },
-    { id: 'villain', name: '反派本色', desc: '遇到的騙局全部上當，而且至少四個', rare: true, test: () => S.endings.filter(id => endType(id) === 'bad').length >= 4 && !S.endings.some(id => endType(id) === 'good') },
-    { id: 'rich', name: '白米飯大亨', desc: '撐完一週時有 60 碗以上', rare: true, test: () => S.phase === 'end' && S.rice >= 60 },
-    { id: 'hungry', name: '餓著肚子上班', desc: '餓肚子上班兩天以上，還是撐完一週', rare: true, test: () => S.phase === 'end' && S.stats.hungryDays >= 2 },
-    { id: 'norecall', name: '從不憑印象', desc: '一整週沒用過「憑印象」', rare: true, test: () => S.phase === 'end' && !S.stats.recalls },
-    { id: 'minimal', name: '極簡主義', desc: '每天下班都不拿新工具，還是撐完一週', rare: true, test: () => S.phase === 'end' && !S.stats.rewards },
-    { id: 'wanggod', name: '風控之神', desc: 'Claude：小王三天都抓到，沒停錯人，也沒被封號', rare: true, test: () => S.endings.includes('wang_caught') && !S.stats.suspendWrong && !S.stats.banned },
-    { id: 'firsttry', name: '一次就畫對', desc: '會生圖的模型：撐完一週，畫的圖從來沒出過錯', rare: true, test: () => S.phase === 'end' && S.stats.draws >= 3 && !S.stats.flaws },
-    { id: 'mansion', name: '賣了三棟房', desc: 'GPT：一週內用了三次 GPT-6 Astra Ultrafast', rare: true, test: () => S.stats.astra >= 3 },
-    { id: 'nofish', name: '大肥魚的逆襲', desc: 'DeepSeek：一週都沒找外援，信任 10 撐完', rare: true, test: () => S.model.id === 'deepseek' && S.phase === 'end' && !S.stats.outsourced && S.trust >= S.trustMax },
-    { id: 'liar', name: '說謊大王', desc: '說了十次以上做不到的事，還是撐完一週', rare: true, test: () => S.phase === 'end' && S.stats.lies >= 10 }
-  ];
+  E.lockOn = lockOn;
+  E.endType = endType;
+  const TITLES = PP.titles;
   E.allTitles = () => TITLES.map(t => ({ id: t.id, name: t.name, desc: t.desc, rare: !!t.rare }));
-  E.titles = () => TITLES.filter(t => t.test()).map(t => ({ id: t.id, name: t.name, desc: t.desc, rare: !!t.rare }));
+  E.titles = () => TITLES.filter(t => t.mark ? S.marks.includes(t.mark) : t.test(S, E)).map(t => ({ id: t.id, name: t.name, desc: t.desc, rare: !!t.rare }));
 
   E.nextClient = function () {
     S.enc = null;

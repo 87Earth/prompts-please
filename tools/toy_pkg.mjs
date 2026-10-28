@@ -58,9 +58,7 @@ if ('test' in args) {
   const test = path.join(ROOT, 'work', 'toy', 'test');
   clear(test);
   fs.cpSync(out, test, { recursive: true });
-  for (const f of ['fuzz.mjs', 'zh_check.mjs', 'layout_check.mjs']) fs.cpSync(path.join(ROOT, 'tools', f), path.join(test, 'tools', f));
-  const t2cn = 'node_modules/opencc-js/dist/umd/t2cn.js';
-  fs.cpSync(path.join(ROOT, t2cn), path.join(test, t2cn));
+  for (const f of ['fuzz.mjs', 'zh_check.mjs', 'layout_check.mjs', 'lib']) fs.cpSync(path.join(ROOT, 'tools', f), path.join(test, 'tools', f), { recursive: true });
   let failed = 0;
   for (const [tool, ...a] of [['fuzz.mjs', '2700'], ['fuzz.mjs', 'aliases'], ['fuzz.mjs', 'save'], ['zh_check.mjs'], ['layout_check.mjs', '--lang=cn'], ['layout_check.mjs', '--lang=tw']]) {
     try {

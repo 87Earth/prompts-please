@@ -1,8 +1,8 @@
-import vm from 'node:vm';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
+import { loadGame } from './lib/load.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -18,15 +18,11 @@ try {
   process.exit(2);
 }
 
-const FILES = ['data/models.js', 'data/cards.js', 'data/rules.js', 'data/clients.js', 'data/days.js', 'data/events.js', 'data/chatter.js', 'data/updates.js', 'data/zh.js', 'src/vendor/opencc-js/t2cn.js', 'src/lang.js', 'src/engine.js'];
-const ctx = { console };
-ctx.window = ctx;
-vm.createContext(ctx);
-for (const f of FILES) vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
-const { PP } = ctx;
+const { PP } = loadGame(ROOT);
 
 const HAN = /[㐀-鿿]/;
-const SOURCES = ['index.html', ...fs.readdirSync(path.join(ROOT, 'data')).filter(f => f.endsWith('.js') && f !== 'zh.js').map(f => 'data/' + f), ...fs.readdirSync(path.join(ROOT, 'src')).filter(f => f.endsWith('.js') && f !== 'lang.js').map(f => 'src/' + f)];
+const walk = d => fs.readdirSync(path.join(ROOT, d), { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(d + '/' + e.name) : [d + '/' + e.name]);
+const SOURCES = ['index.html', ...walk('data').filter(f => f.endsWith('.js') && f !== 'data/zh.js'), ...fs.readdirSync(path.join(ROOT, 'src')).filter(f => f.endsWith('.js') && f !== 'lang.js').map(f => 'src/' + f)];
 const LIT = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"|`((?:[^`\\]|\\.)*)`|>([^<>{}]*[㐀-鿿][^<>{}]*)</g;
 const texts = [];
 for (const f of SOURCES) {
@@ -61,7 +57,7 @@ if (show) {
 }
 
 const vendored = fs.readFileSync(path.join(ROOT, 'src/vendor/opencc-js/t2cn.js'));
-const upstream = fs.readFileSync(path.join(ROOT, 'node_modules/opencc-js/dist/umd/t2cn.js'));
+const upstream = fs.readFileSync(require.resolve('opencc-js/t2cn'));
 if (!vendored.equals(upstream)) errors.push('src/vendor/opencc-js/t2cn.js 跟 node_modules 裡的 opencc-js 不一樣');
 
 uniq.forEach((s, i) => {

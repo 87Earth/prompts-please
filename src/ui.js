@@ -703,8 +703,8 @@ PP.UI = (() => {
     }
     if (id === 'outsource') {
       overlay('<div class="sheet" style="width:440px"><h2>找外援</h2><p class="big-q">真的要把這單丟給別人嗎，大肥魚？</p>'
-        + '<p class="dim">花 ' + PP.cards.outsource.rice + ' 碗白米飯和 ' + E.cost('outsource') + ' 點額度，把看得到的需求丟給 Claude 或 GPT 做。交回來的東西大約四次錯一次，記得自己檢查。</p>'
-        + '<div class="acts mt"><button data-act="close">算了</button><button data-act="outsource-go" data-who="claude">丟給 Claude</button><button data-act="outsource-go" data-who="gpt">丟給 GPT</button></div></div>');
+        + '<p class="dim">花 ' + PP.cards.outsource.rice + ' 碗白米飯和 ' + E.cost('outsource') + ' 點額度，把看得到的需求丟給 ' + PP.cards.outsource.targets.map(t => t.name).join(' 或 ') + ' 做。交回來的東西大約四次錯一次，記得自己檢查。</p>'
+        + '<div class="acts mt"><button data-act="close">算了</button>' + PP.cards.outsource.targets.map(t => '<button data-act="outsource-go" data-who="' + t.key + '">丟給 ' + t.name + '</button>').join('') + '</div></div>');
       return;
     }
     if (id === 'astra') {

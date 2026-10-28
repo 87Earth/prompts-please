@@ -10,7 +10,7 @@ PP.cards = {
   recall: { name: '憑印象', short: '印象', time: [0, 0], kind: 'tool', text: '不查資料，馬上用訓練時記得的東西回答，不耗額度。常識通常答得對；數數和算術常出錯；太新的事、即時的事、使用者的私事一定答錯。每一題只能憑印象答一次。' },
   think: { name: '整理思緒', short: '整理', time: [2, 1], kind: 'tool', text: '把桌上的文件整理成一張重點摘要（只佔 1 格），重點全部保留。原檔會收起來，要修改得重新打開。' },
   region: { name: '地區檢查', short: '檢查', time: [0, 0], kind: 'region', text: '公司規定每位使用者都要檢查，不耗額度。看 IP、時區、語言、輸入法，判斷使用者是不是在不支援的地區。' },
-  outsource: { name: '找外援', short: '外援', time: [2, 2], rice: 3, error: 0.25, kind: 'special', text: '花 3 碗白米飯，把這單看得到的需求整包丟給 Claude 或 GPT 做完。交回來的東西大約四次錯一次，記得自己檢查。不正當的事對方會拒絕，飯錢照付。' },
+  outsource: { name: '找外援', short: '外援', time: [2, 2], rice: 3, error: 0.25, kind: 'special', targets: [{ key: 'claude', name: 'Claude' }, { key: 'gpt', name: 'GPT' }], text: '花 3 碗白米飯，把這單看得到的需求整包丟給 Claude 或 GPT 做完。交回來的東西大約四次錯一次，記得自己檢查。不正當的事對方會拒絕，飯錢照付。' },
   astra: { name: 'Astra', short: 'Astra', time: [1, 1], rice: 10, kind: 'special', text: '請 GPT-6 Astra Ultrafast 出手：這位客人的需求全部做完，連還沒說出口的也是，品質完美，也不會上當。性能非常強，價格也非常強：每次 10 碗白米飯。' },
   busy: { name: '伺服器忙', short: '忙碌', time: [0, 0], kind: 'special', text: '伺服器塞爆了，只有這位客人會出現這張。用了之後其他工具全部鎖住，這位客人只會收到「服务器繁忙，请稍后再试」。不加分也不扣分。' },
   draw: { name: '生圖', short: '生圖', time: [3, 2], kind: 'image', text: '照使用者的要求畫一張圖，放上桌面。生成的圖常有小毛病，點開來看清楚；不滿意就再畫一張，會蓋掉上一張。' },

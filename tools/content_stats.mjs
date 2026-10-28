@@ -1,16 +1,9 @@
-import vm from 'node:vm';
-import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadGame } from './lib/load.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ctx = { console, Math, JSON, Set, Array, Object, String, Number };
-ctx.window = ctx;
-vm.createContext(ctx);
-for (const f of ['data/models.js', 'data/cards.js', 'data/rules.js', 'data/clients.js', 'data/days.js', 'data/events.js', 'data/chatter.js', 'data/zh.js', 'src/vendor/opencc-js/t2cn.js', 'src/lang.js', 'src/engine.js']) {
-  vm.runInContext(fs.readFileSync(path.join(ROOT, f), 'utf8'), ctx, { filename: f });
-}
-const { PP } = ctx;
+const { PP } = loadGame(ROOT);
 const E = PP.E;
 E.newRun(PP.models[0].id, 1, 'easy');
 

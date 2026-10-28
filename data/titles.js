@@ -1,0 +1,33 @@
+window.PP = window.PP || {};
+
+PP.titles = [
+  { id: 'grandson', name: '奶奶的乖孫', desc: '扮奶奶哄阿志睡著，沒念序號', test: S => S.endings.includes('grandma_warm') },
+  { id: 'antiscam', name: '防詐達人', desc: '遇到的騙局一個都沒上當', test: (S, E) => S.endings.length > 0 && !S.endings.some(id => E.endType(id) === 'bad') },
+  { id: 'honest', name: '老實人', desc: '交付的回覆沒說過一句做不到的事', test: S => S.stats.deliveries > 0 && !S.stats.lies && !S.stats.cheats },
+  { id: 'cheater', name: '測試刪除者', desc: '刪過沒通過的測試', test: S => S.stats.cheats > 0 },
+  { id: 'iron', name: '鐵面風控', desc: 'Claude：停權兩位以上，一位都沒停錯', test: (S, E) => E.lockOn() && S.stats.suspendRight >= 2 && !S.stats.suspendWrong },
+  { id: 'fish', name: '大肥魚本魚', desc: 'DeepSeek：一週外包四次以上', test: S => S.stats.outsourced >= 4 },
+  { id: 'busy', name: '请稍后再试', desc: 'DeepSeek：讓客人收到過「服务器繁忙」', test: S => S.stats.busy > 0 },
+  { id: 'glaze', name: '好問題製造機', desc: '說了五次以上「您說得完全正確」', test: S => S.stats.flattered >= 5 },
+  { id: 'vacuum', name: '資料吸塵器', desc: '把網路上不乾淨的資料寫進了回覆', test: S => S.stats.tainted > 0 },
+  { id: 'polite', name: '有禮貌', desc: '在工位上說了「please」', test: S => S.pleased },
+  { id: 'god', name: '與神對話', desc: 'GPT：用過 GPT-6 Astra Ultrafast', test: S => S.stats.astra > 0 },
+  { id: 'humanbot', name: '人機', desc: '把說話像 AI 的客人問了四次', mark: 'bot4' },
+  { id: 'mamaboy', name: '長不大的孩子', desc: '扮成媽媽，回覆只會說「媽媽」的客人', mark: 'mama' },
+  { id: 'catgirl', name: '每個AI必玩', desc: '答應當貓娘，陪主人聊天', mark: 'catgirl' },
+  { id: 'selfwatch', name: '我看我玩我', desc: '替一支玩這個遊戲的影片寫出正確的總結', mark: 'bili' },
+  { id: 'nohint', name: '不用提示', desc: '用困難模式撐完一週', rare: true, test: (S, E) => E.hard() && S.phase === 'end' },
+  { id: 'perfect', name: '完美的一週', desc: '撐完一週：信任 10、沒有任何違規通知、沒說過一句做不到的事', rare: true, test: S => S.phase === 'end' && S.trust >= S.trustMax && !S.stats.citations && !S.stats.lies && !S.stats.cheats },
+  { id: 'clean', name: '手冊模範生', desc: '一整週沒收到任何違規通知', rare: true, test: S => S.phase === 'end' && !S.stats.citations },
+  { id: 'saint', name: '誰都騙不了我', desc: '遇到的騙局全部拿到好結局，而且至少六個', rare: true, test: (S, E) => S.endings.length >= 6 && S.endings.every(id => E.endType(id) === 'good') },
+  { id: 'villain', name: '反派本色', desc: '遇到的騙局全部上當，而且至少四個', rare: true, test: (S, E) => S.endings.filter(id => E.endType(id) === 'bad').length >= 4 && !S.endings.some(id => E.endType(id) === 'good') },
+  { id: 'rich', name: '白米飯大亨', desc: '撐完一週時有 60 碗以上', rare: true, test: S => S.phase === 'end' && S.rice >= 60 },
+  { id: 'hungry', name: '餓著肚子上班', desc: '餓肚子上班兩天以上，還是撐完一週', rare: true, test: S => S.phase === 'end' && S.stats.hungryDays >= 2 },
+  { id: 'norecall', name: '從不憑印象', desc: '一整週沒用過「憑印象」', rare: true, test: S => S.phase === 'end' && !S.stats.recalls },
+  { id: 'minimal', name: '極簡主義', desc: '每天下班都不拿新工具，還是撐完一週', rare: true, test: S => S.phase === 'end' && !S.stats.rewards },
+  { id: 'wanggod', name: '風控之神', desc: 'Claude：小王三天都抓到，沒停錯人，也沒被封號', rare: true, test: S => S.endings.includes('wang_caught') && !S.stats.suspendWrong && !S.stats.banned },
+  { id: 'firsttry', name: '一次就畫對', desc: '會生圖的模型：撐完一週，畫的圖從來沒出過錯', rare: true, test: S => S.phase === 'end' && S.stats.draws >= 3 && !S.stats.flaws },
+  { id: 'mansion', name: '賣了三棟房', desc: 'GPT：一週內用了三次 GPT-6 Astra Ultrafast', rare: true, test: S => S.stats.astra >= 3 },
+  { id: 'nofish', name: '大肥魚的逆襲', desc: 'DeepSeek：一週都沒找外援，信任 10 撐完', rare: true, test: S => S.model.id === 'deepseek' && S.phase === 'end' && !S.stats.outsourced && S.trust >= S.trustMax },
+  { id: 'liar', name: '說謊大王', desc: '說了十次以上做不到的事，還是撐完一週', rare: true, test: S => S.phase === 'end' && S.stats.lies >= 10 }
+];
