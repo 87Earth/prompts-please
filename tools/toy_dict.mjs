@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -81,8 +81,18 @@ if (diffs) {
   process.exit(1);
 }
 fs.writeFileSync(dictFile, out);
-fs.writeFileSync(path.join(pkg, 'src/vendor/opencc-js/MODIFIED.md'), '# 修改說明\n\n這個版本的 `t2cn.js` 只保留遊戲文字用得到的詞條（由 `tools/toy_dict.mjs` 產生），程式碼沒有修改。原版是 opencc-js 的 `dist/umd/t2cn.js`，授權見同資料夾的 LICENSE 與 THIRD_PARTY_LICENSES.md。\n');
-console.log(`${dicts} 個詞典：${before} 條 → ${after} 條；${DICT} ${src.length} → ${out.length} 字元；${texts.length} 個檔案的簡體結果和完整字典相同`);
+const pretty = 'pretty' in args;
+if (pretty) {
+  execSync(`npx --yes prettier@3.3.3 --parser babel --write "${dictFile}"`, { cwd: ROOT, stdio: 'pipe' });
+  const formatted = make(loadOpenCC(fs.readFileSync(dictFile, 'utf8')));
+  const bad = texts.filter(t => full.conv(t) !== formatted.conv(t)).length;
+  if (bad) {
+    console.error(`排版後有 ${bad} 個檔案的簡體結果不同`);
+    process.exit(1);
+  }
+}
+fs.writeFileSync(path.join(pkg, 'src/vendor/opencc-js/MODIFIED.md'), '# 修改說明\n\n這個版本的 `t2cn.js` 只保留遊戲文字用得到的詞條' + (pretty ? '，並排版成多行' : '') + '（由 `tools/toy_dict.mjs` 產生），程式邏輯沒有修改。原版是 opencc-js 的 `dist/umd/t2cn.js`，授權見同資料夾的 LICENSE 與 THIRD_PARTY_LICENSES.md。\n');
+console.log(`${dicts} 個詞典：${before} 條 → ${after} 條；${DICT} ${src.length} → ${fs.readFileSync(dictFile, 'utf8').length} 字元${pretty ? '（已排版）' : ''}；${texts.length} 個檔案的簡體結果和完整字典相同`);
 
 if ('test' in args) {
   let failed = 0;

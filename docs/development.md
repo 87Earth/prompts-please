@@ -22,8 +22,8 @@
 | `content_stats.mjs` | 從遊戲資料數出內容數量（模型、工具、規則、客人、事件、結局、稱號等），用來核對 [events.md](events.md) 的數字 | `node tools/content_stats.mjs` |
 | `make_toy_assets.mjs` | 產生 B 站 Toy 列表用的封面（1200×900）與圖標（512×512）：辦公室像素畫、九個模型頭像、標題與白米飯圖示，用遊戲本身的字型與素材畫成 | `node tools/make_toy_assets.mjs`（預設簡體、輸出到 `work/toy/`；`--lang=tw` 改繁體，`--out=<資料夾>` 改輸出位置）；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `toy_pkg.mjs` | 產生 B 站 Toy 版的遊戲包：從目前的提交取出 `index.html`、`src/`、`data/`、`assets/` 到 `work/toy/pkg`，套用 `toy_patch.json` 的替換，再檢查 `forbid` 列的字沒有留下。`toy_patch.json` 只給 B 站審核用，GitHub 版和網頁版都照原本文案；替換對不上原文時會報錯，要照新原文更新 | `node tools/toy_pkg.mjs`；加 `--test` 會在 `work/toy/test` 的副本跑 fuzz、zh_check 和簡繁 layout_check |
-| `toy_split.mjs` | 把 `toy_patch.json` 的 `split` 指定的資料檔拆成小檔（每位客人、事件、模型、閒聊各一檔），B 站審核退件時會點名到小檔；拆完會比對資料和拆之前完全相同 | 在 `toy_pkg.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑簡繁 layout_check |
-| `toy_dict.mjs` | B 站 Toy 版的簡體字典精簡：`src/vendor/opencc-js/t2cn.js` 只留下遊戲文字用得到的詞條（原本約 8,000 條），確認每個檔案轉出來的簡體和完整字典完全相同才寫入，並在同資料夾寫一份 `MODIFIED.md` 註明修改過 | 在 `toy_split.mjs` 之後執行 `node tools/toy_dict.mjs`；加 `--test` 再跑簡繁 layout_check |
+| `toy_split.mjs` | 把 `toy_patch.json` 的 `split` 指定的資料檔拆成小檔（每位客人、事件、模型、閒聊各一檔），B 站審核退件時會點名到小檔；拆完會比對資料和拆之前完全相同。`split.drop` 列出的客人或劇情線不放進 B 站版（空出的固定位置由 `toy_patch.json` 改成從題庫抽） | 在 `toy_pkg.mjs` 之後執行 `node tools/toy_split.mjs`；加 `--test` 再跑簡繁 layout_check |
+| `toy_dict.mjs` | B 站 Toy 版的簡體字典精簡：`src/vendor/opencc-js/t2cn.js` 只留下遊戲文字用得到的詞條（原本約 8,000 條），確認每個檔案轉出來的簡體和完整字典完全相同才寫入，並在同資料夾寫一份 `MODIFIED.md` 註明修改過 | 在 `toy_split.mjs` 之後執行 `node tools/toy_dict.mjs`；加 `--pretty` 用 prettier 排版成多行（第一次要連網下載），加 `--test` 再跑簡繁 layout_check |
 | `make_favicon.mjs` | 把遊戲裡的白米飯像素圖畫成網站圖示（16、32、180 像素），寫進 `assets/` | `node tools/make_favicon.mjs`；需要 Chrome，或用 `--browser=<路徑>` 指定瀏覽器 |
 | `pixel_portraits.py` | 把九個模型的半身圖去背、裁切、縮成 64×64 的像素頭像，寫進 `assets/sprites/portraits/`，另外在系統暫存資料夾輸出一張預覽圖 | 需要 Python 3、numpy、Pillow。用環境變數 `PP_CHAR_DIR` 指定圖檔資料夾：每個模型一個子資料夾，裡面放半身圖 `close.png`（例如 `claude/close.png`）。可以加一段 JSON 參數調整 `size`、`colors`、`tol`、`crop`（左、上、右、下，預設 `[150, 20, 874, 744]`，以 1024 像素寬的圖為準）、`crops`（各模型分別設定）。原始的半身圖不在這個倉庫裡 |
 

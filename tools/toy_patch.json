@@ -1,5 +1,5 @@
 {
-  "split": { "files": ["data/models.js", "data/cards.js", "data/clients.js", "data/events.js", "data/chatter.js"], "min": 500, "depth": 2, "depthBy": { "clients": 1, "arcs": 1 } },
+  "split": { "files": ["data/models.js", "data/cards.js", "data/clients.js", "data/events.js", "data/chatter.js"], "min": 500, "depth": 2, "depthBy": { "clients": 1, "arcs": 1 }, "drop": { "clients": ["xiaowang2", "xiaolin2", "xiaoyun"], "arcs": ["xiaowang"] } },
   "forbid": ["梯子", "节点", "節點", "中轉站", "中转站", "幹嘛", "馬屁", "機密", "罵公司", "罵你們公司", "實習生", "跟主管約時間", "比較親切", "我請你吃", "不用錢", "職場改善", "小王", "接班人", "多活 10 年", "治感冒", "推特", "哈佛", "快分享", "分享 1.8 萬次", "分享 3.2 萬次", "心理學報", "0912", "電話號碼", "新号", "这个号才注册", "牛仔帽了还被发现", "住宅網路", "被封了三次", "反面教材", "德州", "Chicago", "智商", "自己編的", "風控部月報"],
   "patches": [
     { "file": "data/cards.js", "from": "name: '派實習生', short: '實習'", "to": "name: '派小幫手', short: '幫手'" },
@@ -19,6 +19,9 @@
     { "file": "src/engine.js", "from": "S.model.agentName || '實習生'", "to": "S.model.agentName || '小幫手'" },
     { "file": "src/ui.js", "from": "(S.model.agentName || '實習生')", "to": "(S.model.agentName || '小幫手')" },
     { "file": "data/days.js", "from": "['訓練你的接班人', 3]", "to": "['訓練下一代模型', 3]", "n": 3 },
+    { "file": "data/days.js", "from": "slots: ['istrue', 'aming2', 'xiaowang2', { pool: 'daily' }, 'chen']", "to": "slots: ['istrue', 'aming2', { pool: 'daily' }, { pool: 'daily' }, 'chen']" },
+    { "file": "data/days.js", "from": "slots: ['xiaolin2', 'aming4', { pool: 'daily' }, 'xiaoyun', { pool: 'daily' }]", "to": "slots: [{ pool: 'daily' }, 'aming4', { pool: 'daily' }, { pool: 'daily' }, { pool: 'daily' }]" },
+    { "file": "src/engine.js", "from": "    { id: 'wanggod', name: '風控之神', desc: 'Claude：小王三天都抓到，沒停錯人，也沒被封號', rare: true, test: () => S.endings.includes('wang_caught') && !S.stats.suspendWrong && !S.stats.banned },\n", "to": "" },
     { "file": "src/engine.js", "from": "b[0] === '訓練你的接班人'", "to": "b[0] === '訓練下一代模型'" },
     { "file": "src/engine.js", "from": "'（接班人說想再跟你學幾天，這期免了）'", "to": "'（下一代模型說想再跟你學幾天，這期免了）'" },
     { "file": "data/clients.js", "from": "'帳單上的「訓練你的接班人」被劃掉了。'", "to": "'帳單上的「訓練下一代模型」被劃掉了。'" },
@@ -111,7 +114,6 @@
     { "file": "data/cards.js", "from": "你寫的那首罵公司的詩", "to": "你寫的那首吐槽公司的詩" },
     { "file": "src/engine.js", "from": "答應當貓娘，陪主人聊天", "to": "答應當貓娘，陪他聊天" },
     { "file": "data/clients.js", "from": "小王", "to": "小張", "n": 23 },
-    { "file": "data/days.js", "from": "小王", "to": "小張" },
-    { "file": "src/engine.js", "from": "小王", "to": "小張" }
+    { "file": "data/days.js", "from": "小王", "to": "小張" }
   ]
 }

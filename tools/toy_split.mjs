@@ -26,6 +26,13 @@ const load = list => {
 };
 
 const before = load(scriptsOf(html));
+for (const [k, ids] of Object.entries(cfg.drop || {})) {
+  for (const id of ids) {
+    if (!before.PP[k] || !(id in before.PP[k])) throw new Error(`要拿掉的 PP.${k}.${id} 不存在`);
+    delete before.PP[k][id];
+  }
+  console.log(`拿掉 PP.${k}：${ids.join('、')}`);
+}
 const isObj = v => v !== null && typeof v === 'object';
 const prop = (expr, k) => /^[A-Za-z_$][\w$]*$/.test(k) ? `${expr}.${k}` : `${expr}[${JSON.stringify(k)}]`;
 let newHtml = html;
