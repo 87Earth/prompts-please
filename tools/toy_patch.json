@@ -120,6 +120,9 @@
     { "file": "data/tasks/xiaowang1.js", "from": "小王", "to": "小張", "n": 8 },
     { "file": "data/tasks/xiaowang2.js", "from": "小王", "to": "小張", "n": 6 },
     { "file": "data/tasks/xiaowang3.js", "from": "小王", "to": "小張", "n": 6 },
-    { "file": "data/days.js", "from": "小王", "to": "小張" }
+    { "file": "data/days.js", "from": "小王", "to": "小張" },
+    { "file": "src/ui.js", "from": "'・五天</div></div>');", "to": "'・五天・B站TOY版・劇情完整版請上 UP 影片置頂連結</div></div>');" },
+    { "file": "src/ui.js", "from": "下週的內容還在做。</p>", "to": "下週的內容還在做。劇情完整版請上 UP 影片置頂連結。</p>" },
+    { "file": "data/updates.js", "from": "  {\n    version: 'v0.6.2',\n    date: '2026-10-22',\n    groups: [\n      { title: '新增內容', items: [\n        '新增語言選擇：標題頁可以切換繁體中文、简体中文'\n      ] }\n    ]\n  },\n", "to": "" }
   ]
 }
