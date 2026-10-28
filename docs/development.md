@@ -74,6 +74,7 @@ B 站版一次做完：`npm run toy`（依序跑 `toy_pkg.mjs`、`toy_cn.mjs`、
   - `userRules`：可能出現在這位客人身上的使用者規定（規定本身有 `clients` 清單時才需要）。
   - `titles`：只跟這位客人有關的稱號，`{ id, name, desc, rare, mark }`。
   - `variants`：可以直接寫陣列，或寫成函式 `(t, kit) => [ … ]`（`t` 是這位客人本身，`kit` 有 `clone`、`swap`（整段換字）、`moveInject`）。
+  - `face`：新的頭像，格式同 `src/pixel.js` 的 `PP.AVATARS`（`style` 髮型；`hair`、`shirt`、`skin` 等顏色；`smile`、`glasses`、`ponytail` 等配件），用 `avatar` 的 id 加進去，不能跟現有的頭像同名。用現有的頭像就不用寫。
   - 範本（欄位說明在下面）：
 
     ```js

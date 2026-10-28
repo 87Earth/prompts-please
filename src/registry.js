@@ -44,11 +44,16 @@ window.PP = window.PP || {};
       list.push(e);
     });
     pending.task.splice(0).forEach(def => {
-      const { id, facts, pool, userRules, titles, variants, ...c } = def;
+      const { id, facts, pool, userRules, titles, variants, face, ...c } = def;
       if (!id) return problem('有一個任務沒有 id');
       if (PP.clients[id]) problem('任務 id 重複：' + id);
       if (variants) c.variants = typeof variants === 'function' ? variants(c, PP.kit) : variants;
       PP.clients[id] = c;
+      if (face) {
+        PP.AVATARS = PP.AVATARS || {};
+        if (PP.AVATARS[c.avatar]) problem(id + ' 的頭像 id 已經有人用：' + c.avatar);
+        PP.AVATARS[c.avatar] = face;
+      }
       Object.entries(facts || {}).forEach(([k, v]) => {
         if (PP.facts[k]) problem(id + ' 的事實 id 重複：' + k);
         PP.facts[k] = v;

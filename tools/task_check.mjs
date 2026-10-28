@@ -6,7 +6,7 @@ import { scripts } from './lib/load.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const words = s => new Set(s.split(' '));
-const TASK = words('id facts pool userRules titles variants name role avatar patience reward message needs ask hints options lines askLoop attachments avatarLock bash derive endings files grep images linesBy linesCn linesLock linesUs malicious messageBy messageCn messageLock messageUs noAlias noDocEvents noOptEvents noTalkEvents noUserRules okEdits profile recalls refuseChatter roleBy web writeLines wrongEdits');
+const TASK = words('id facts pool userRules titles variants face name role avatar patience reward message needs ask hints options lines askLoop attachments avatarLock bash derive endings files grep images linesBy linesCn linesLock linesUs malicious messageBy messageCn messageLock messageUs noAlias noDocEvents noOptEvents noTalkEvents noUserRules okEdits profile recalls refuseChatter roleBy web writeLines wrongEdits');
 const REQUIRED = ['name', 'role', 'avatar', 'patience', 'reward', 'message', 'needs', 'ask', 'hints', 'options', 'lines'];
 const NEED = words('id text kind bestStyle draw dump facts file flag hidden incident inline later lieLine lines locations mark not of quality recall recap requires rule say styles taint taintRule target tip wrong');
 const KINDS = words('edit fact flag flawless image quality trap verify write');
