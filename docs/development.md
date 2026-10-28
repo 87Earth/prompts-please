@@ -7,7 +7,10 @@
 - `src/registry.js`：資料檔用 `PP.task`、`PP.event`、`PP.arc`、`PP.model`、`PP.title` 註冊內容；引擎啟動時呼叫 `PP.finalize()`，把註冊的內容整理進 `PP.clients`、`PP.events`、`PP.userRules`、`PP.arcs`、`PP.models`、`PP.titles`、`PP.facts`、`PP.pools`。直接寫 `PP.clients = { … }` 這類舊寫法照樣能讀，兩種可以混用。
 - `src/ui.js`（`PP.UI`）：畫面、辦公室動畫、彩蛋、開發工具。
 - `src/lang.js`：語言切換與繁轉簡，見下面的「簡體中文」。
-- `src/pixel.js`：像素圖（模型小人、客人頭像、圖示、生成的圖）。`src/audio.js`：Web Audio 即時合成的音效與音樂。`src/main.js`：縮放與啟動。
+- `src/pixel.js`：像素圖（模型小人、客人頭像、圖示、生成的圖）。`src/audio.js`：Web Audio 即時合成的音效與音樂。`src/main.js`：依視窗決定版面、舞台大小和放大倍數，然後啟動。
+- 版面：`src/main.js` 的 `fit()` 用版面視窗的大小（`document.documentElement` 的 `clientWidth`／`clientHeight`，兩指縮放不會改變）決定三種版面。寬大於等於高是橫式：舞台寬 800～960、高 450～600，倍數取填滿，和整數倍差不到 10% 時用整數倍（只在非觸控裝置）；觸控裝置高度不到 500 時是精簡版，辦公室和工具列比較矮，最小高度 410。高大於寬是直式：舞台寬 360～600（字大約落在 11～16px），高跟著螢幕，最矮 520；高度不到 600 時上班畫面不顯示辦公室。結果放在 `PP.W`、`PP.H`、`PP.scale`、`PP.portrait`、`PP.compact`，`<html>` 加上 `portrait`、`compact`、`short` 這幾個 class，舞台有 CSS 變數 `--w`、`--h`。
+- 樣式：橫式的尺寸寫成 `calc(var(--h) - …)`、`100%` 這類跟著舞台的值，在 800×450 時和原尺寸相同；直式和精簡版的規則在 `src/style.css` 最後，以 `html.portrait`、`html.compact`、`html.short` 開頭。辦公室畫布寬度等於舞台寬度：比 800 寬時場景置中、兩側補牆；比 800 窄時鏡頭對著自己的座位（標題頁對著中間）。版面類型或舞台大小改變時呼叫 `PP.UI.relayout()`：標題頁和日報重畫，上班畫面只重排，開著的視窗和勾選都保留。
+- 加新畫面或新視窗時，三種版面都要排得下：橫式的寬度寫死不超過 800、高度跟著 `--h`；直式靠 `html.portrait` 的規則讓視窗整頁顯示。用 `tools/layout_check.mjs` 的 `--portrait`、`--size` 檢查（見 [testing.md](testing.md)）。
 - `data/`：所有內容都是資料，新增內容大多只改這裡：`tasks/`（每位客人一個檔案）、`events/`（客人事件 `client-*`、當日事件 `day-*`、使用者規定 `rule-*`，各一個檔案）、`arcs/`（跨天的劇情線）、`models/`（每個模型一個檔案）、`regions.js`（地區與預設的地區資料）、`cards.js`（工具、回覆風格）、`rules.js`（手冊規則、多位客人共用的事實）、`titles.js`（稱號）、`days.js`（每天的安排、題庫）、`events.js`（事件的機率）、`chatter.js`（閒聊）、`updates.js`（更新紀錄）、`zh.js`（簡體用語對照）。
 - 存檔與設定存在瀏覽器的 localStorage：`pp_save`（中途存檔）、`pp_endings`、`pp_titles`、`pp_lang`（語言）、`pp_diff`（難度）、`pp_hints`（提示開關）。
 
