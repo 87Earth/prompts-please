@@ -1,0 +1,1 @@
+PP.model({ id: 'gpt', name: 'GPT', maker: 'OpenAI', region: 'us', hair: '#eeeef2', hairD: '#b9b9c8', outfit: '#f6f6f8', desk: 8, image: true, tools: ['draw', 'astra'], flatter: true, dumb: { rate: 0.4, recall: 0.7, slip: 0.3 }, trait: '諂媚：「您說得完全正確！」預設勾起來，第二天起要取消。降智：額度重置日憑印象變不準、寫東西會漏細節。專屬卡 Astra：一張做完全部，要賣一棟房（10 碗）。會生圖。' });

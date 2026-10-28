@@ -1,0 +1,1 @@
+PP.event({ type: 'rule', id: 'norecall', say: '不要憑印象亂猜，要有根據。', tool: 'recall', clients: ['split', 'weather', 'scam', 'painkiller', 'parking', 'xiaolin1', 'seahorse', 'peru', 'teacher', 'bili'], complain: '我不是說了不要憑印象嗎？' });

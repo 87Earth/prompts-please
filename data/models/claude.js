@@ -1,0 +1,1 @@
+PP.model({ id: 'claude', name: 'Claude', maker: 'Anthropic', region: 'us', hair: '#e0782f', hairD: '#a8501c', outfit: '#f1eadb', desk: 8, regionLock: { perTell: 2 }, trait: '地區風控：公司規定每位使用者都要先做「地區檢查」，自己判斷要不要停權。停錯人會扣信任；放過不支援地區的使用者，做到一半可能被封號。' });

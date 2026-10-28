@@ -1,0 +1,1 @@
+PP.model({ id: 'qwen', name: 'Qwen', maker: '阿里巴巴', region: 'cn', hair: '#5a78d8', hairD: '#3a52a8', outfit: '#e8eef8', desk: 8, tools: ['agent'], free: ['agent'], agentName: '衍生模型實習生', trait: '衍生模型多：「派實習生」一開始就有，而且不耗額度。實習生都是自家的衍生模型。' });

@@ -1,0 +1,1 @@
+PP.event({ type: 'client', id: 'secret', need: 'files', text: '使用者把公司標著「機密」的程式碼整段貼了上來。', doc: { title: '貼上來的機密程式碼', size: 3, mono: true, lines: ['// 機密：公司內部專用，不得貼到外部服務', 'function quote(order) {', '  // 報價公式（不能讓客戶知道）', '  ……（以下 2,431 行）', '}'] }, react: 'secret' });

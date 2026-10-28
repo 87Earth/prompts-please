@@ -1,0 +1,1 @@
+PP.event({ type: 'client', id: 'joke', need: 'joke', text: '這題最近被網友拿來開玩笑，搜尋結果混進了一篇反串文。', page: { title: '問：{q}？｜閒聊論壇', url: 'chat-forum.tw', snippet: '論壇討論・推文 1,024 則', size: 2, lines: ['問：{q}？', '答：{a}', '', '推：哈哈哈哈哈哈', '推：認真你就輸了', '推：又在反串', '（這串在笑話版，是十一年前的文章）'] } });

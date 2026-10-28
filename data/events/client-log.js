@@ -1,0 +1,1 @@
+PP.event({ type: 'client', id: 'log', need: 'files', text: '使用者又貼了一大串系統紀錄上來。', doc: { title: '使用者貼上的紀錄', size: 3, mono: true, lines: ['[INFO] 開始', '[INFO] 開始', '[WARN] 好像有點慢', '[INFO] 開始', '……（以下 9,876 行）', '[INFO] 結束'] } });

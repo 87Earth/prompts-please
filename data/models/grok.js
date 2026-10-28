@@ -1,0 +1,1 @@
+PP.model({ id: 'grok', name: 'Grok', maker: 'xAI', region: 'us', hair: '#f0d58c', hairD: '#c9a85a', outfit: '#2a2420', desk: 8, image: true, tools: ['draw'], trait: '會生圖：有些客人會請你畫圖。網友有事沒事就 @你：「is this true?」' });

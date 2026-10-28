@@ -1,0 +1,1 @@
+PP.model({ id: 'seed', name: 'Seed', maker: '字節跳動', region: 'cn', hair: '#7a5ce0', hairD: '#4ab0e0', outfit: '#2a3a8a', desk: 8, image: true, tools: ['draw'], replyOpener: { p: 0.3, line: '我將會用最直白，最直接，最不繞彎子的方式告訴你：' }, trait: '會生圖：有些客人會請你畫圖。回覆的時候常常先來一句「我將會用最直白，最直接，最不繞彎子的方式告訴你」。' });
