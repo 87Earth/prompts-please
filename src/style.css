@@ -242,6 +242,7 @@ button.mini2 { padding: 0 5px; }
 #client { display: flex; flex-direction: column; }
 .c-head, .c-msg, .c-risk { flex: none; }
 .c-h { color: var(--dim); }
+.c-needs.tight .c-h { display: none; }
 .need { display: flex; gap: 4px; align-items: baseline; white-space: nowrap; overflow: hidden; }
 .need .bx { color: var(--dim); flex: none; }
 .need .nt { overflow: hidden; text-overflow: ellipsis; }

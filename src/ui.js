@@ -550,12 +550,14 @@ PP.UI = (() => {
         + (n.injected ? '<span class="src">' + esc(n.source) + '</span>' : '')
         + (mk ? '<span class="mk">' + esc(mk) + '</span>' : '') + '</div>';
     }).join('');
+    const alias = c.alias && c.alias.note ? '<div class="c-risk c-alias">（' + esc(c.alias.note) + '）</div>' : '';
+    const region = regionHTML();
     $('client').innerHTML = '<div class="c-head"><img class="c-av" src="' + PP.avatar(c.avatar) + '"><div class="c-meta">'
       + '<div class="c-name">' + esc(c.name) + '　<span class="dim">' + esc(c.role) + '</span></div>'
       + '<div class="c-pat">剩餘額度　' + enc.time + ' 點</div>'
       + '<div class="pbar"><i class="' + (pct <= 25 ? 'low' : '') + '" style="width:' + pct + '%"></i></div></div></div>'
-      + '<div class="c-msg">' + esc(c.message) + '</div>' + (c.alias && c.alias.note ? '<div class="c-risk c-alias">（' + esc(c.alias.note) + '）</div>' : '') + regionHTML()
-      + '<div class="c-needs"><div class="c-h">需求</div>' + needs + '</div>'
+      + '<div class="c-msg">' + esc(c.message) + '</div>' + alias + region
+      + '<div class="c-needs' + (alias || region ? ' tight' : '') + '"><div class="c-h">需求</div>' + needs + '</div>'
       + '<div class="c-acts"><button class="btn-ok" data-act="deliver">交付</button></div>';
   }
 
